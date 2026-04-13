@@ -39,7 +39,8 @@ export function validate(schemas: ValidationSchemas) {
           errors.push({ field: `query.${issue.path.join('.')}`, message: issue.message });
         }
       } else {
-        req.query = result.data as typeof req.query;
+        // Express 5: req.query is a getter, store parsed data in req.parsedQuery
+        (req as Request & { parsedQuery: unknown }).parsedQuery = result.data;
       }
     }
 

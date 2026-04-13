@@ -48,11 +48,23 @@ export const swaggerDocument = {
           totalPages: { type: 'integer', example: 8 },
         },
       },
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          email: { type: 'string', example: 'mechanic@workshop.com' },
+          fullName: { type: 'string', example: 'Carlos Ramirez' },
+          role: { type: 'string', enum: ['ADMIN', 'RECEPTIONIST', 'MECHANIC'] },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   security: [{ bearerAuth: [] }],
   tags: [
     { name: 'Auth', description: 'Authentication endpoints' },
+    { name: 'Users', description: 'User management (admin only)' },
   ],
   paths: {
     '/auth/login': {
@@ -155,6 +167,105 @@ export const swaggerDocument = {
             },
           },
           '401': { description: 'Invalid or expired refresh token', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'List users',
+        description: 'Get a paginated list of users with optional search and role filter',
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+          { in: 'query', name: 'search', schema: { type: 'string' }, description: 'Search by name or email' },
+          { in: 'query', name: 'role', schema: { type: 'string', enum: ['ADMIN', 'RECEPTIONIST', 'MECHANIC'] } },
+        ],
+        responses: {
+          '200': {
+            description: 'List of users',
+            content: { 'application/json': { schema: { type: 'object', properties: {
+              success: { type: 'boolean', example: true },
+              data: { type: 'array', items: { $ref: '#/components/schemas/User' } },
+              meta: { $ref: '#/components/schemas/PaginationMeta' },
+            } } } },
+          },
+          '401': { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '403': { description: 'Forbidden — admin only', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      post: {
+        tags: ['Users'],
+        summary: 'Create user',
+        description: 'Create a new user with assigned role',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object', required: ['email', 'password', 'fullName', 'role'], properties: {
+            email: { type: 'string', format: 'email', example: 'mechanic@workshop.com' },
+            password: { type: 'string', minLength: 8, example: 'Secure123!' },
+            fullName: { type: 'string', example: 'Carlos Ramirez' },
+            role: { type: 'string', enum: ['ADMIN', 'RECEPTIONIST', 'MECHANIC'] },
+          } } } },
+        },
+        responses: {
+          '201': { description: 'User created', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { $ref: '#/components/schemas/User' },
+            message: { type: 'string', example: 'Resource created successfully' },
+          } } } } },
+          '409': { description: 'Email already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '422': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/users/{id}': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get user by ID',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'User details', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/User' } } } } } },
+          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      patch: {
+        tags: ['Users'],
+        summary: 'Update user',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object', properties: {
+            email: { type: 'string', format: 'email' },
+            password: { type: 'string', minLength: 8 },
+            fullName: { type: 'string' },
+            role: { type: 'string', enum: ['ADMIN', 'RECEPTIONIST', 'MECHANIC'] },
+          } } } },
+        },
+        responses: {
+          '200': { description: 'User updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/User' }, message: { type: 'string' } } } } } },
+          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '409': { description: 'Email already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      delete: {
+        tags: ['Users'],
+        summary: 'Deactivate user (soft delete)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'User deactivated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/users/{id}/restore': {
+      patch: {
+        tags: ['Users'],
+        summary: 'Restore deactivated user',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'User restored', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/User' }, message: { type: 'string' } } } } } },
+          '400': { description: 'User is not deactivated', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
         },
       },
     },
