@@ -8,6 +8,7 @@ import { swaggerDocument } from './config/swagger';
 import { errorHandler } from './middlewares/error-handler';
 import { notFoundHandler } from './middlewares/not-found';
 import { env } from './config/env';
+import authRoutes from './modules/auth/auth.routes';
 
 const app = express();
 
@@ -40,8 +41,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ success: true, data: { status: 'ok', timestamp: new Date().toISOString() } });
 });
 
-// TODO: Mount module routes here as they are implemented
-// app.use('/api/auth', authRoutes);
+// Module routes
+app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/clients', clientRoutes);
 // app.use('/api/vehicles', vehicleRoutes);
