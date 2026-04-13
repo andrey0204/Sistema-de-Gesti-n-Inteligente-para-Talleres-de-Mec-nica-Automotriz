@@ -10,6 +10,7 @@ import { notFoundHandler } from './middlewares/not-found';
 import { env } from './config/env';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
+import clientRoutes from './modules/clients/clients.routes';
 
 const app = express();
 
@@ -45,7 +46,7 @@ app.get('/api/health', (_req, res) => {
 // Module routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/clients', clientRoutes);
+app.use('/api/clients', clientRoutes);
 // app.use('/api/vehicles', vehicleRoutes);
 // app.use('/api/work-orders', workOrderRoutes);
 // app.use('/api/maintenance-reminders', maintenanceReminderRoutes);

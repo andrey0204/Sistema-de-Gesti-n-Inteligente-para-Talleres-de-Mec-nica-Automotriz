@@ -59,14 +59,106 @@ export const swaggerDocument = {
           updatedAt: { type: 'string', format: 'date-time' },
         },
       },
+      Client: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          fullName: { type: 'string', example: 'Juan Perez' },
+          phone: { type: 'string', example: '3001234567' },
+          documentType: { type: 'string', enum: ['CC', 'CE', 'NIT', 'PASSPORT'], example: 'CC' },
+          documentNumber: { type: 'string', example: '1234567890' },
+          email: { type: 'string', nullable: true, example: 'juan@email.com' },
+          address: { type: 'string', nullable: true, example: 'Calle 123 #45-67' },
+          notes: { type: 'string', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   security: [{ bearerAuth: [] }],
   tags: [
     { name: 'Auth', description: 'Authentication endpoints' },
     { name: 'Users', description: 'User management (admin only)' },
+    { name: 'Clients', description: 'Client management' },
   ],
   paths: {
+    '/clients': {
+      get: {
+        tags: ['Clients'],
+        summary: 'List clients',
+        description: 'Get a paginated list of clients with optional search by name, phone, or document number',
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+          { in: 'query', name: 'search', schema: { type: 'string' }, description: 'Search by name, phone, or document number' },
+        ],
+        responses: {
+          '200': { description: 'List of clients', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/Client' } },
+            meta: { $ref: '#/components/schemas/PaginationMeta' },
+          } } } } },
+        },
+      },
+      post: {
+        tags: ['Clients'],
+        summary: 'Create client',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['fullName', 'phone', 'documentType', 'documentNumber'],
+          properties: {
+            fullName: { type: 'string', example: 'Juan Perez' },
+            phone: { type: 'string', example: '3001234567' },
+            documentType: { type: 'string', enum: ['CC', 'CE', 'NIT', 'PASSPORT'] },
+            documentNumber: { type: 'string', example: '1234567890' },
+            email: { type: 'string', format: 'email' },
+            address: { type: 'string' },
+            notes: { type: 'string' },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Client created', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Client' }, message: { type: 'string' } } } } } },
+          '409': { description: 'Document number already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '422': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/clients/{id}': {
+      get: {
+        tags: ['Clients'],
+        summary: 'Get client by ID',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Client details', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Client' } } } } } },
+          '404': { description: 'Client not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      patch: {
+        tags: ['Clients'],
+        summary: 'Update client',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: {
+          fullName: { type: 'string' }, phone: { type: 'string' },
+          documentType: { type: 'string', enum: ['CC', 'CE', 'NIT', 'PASSPORT'] },
+          documentNumber: { type: 'string' }, email: { type: 'string' },
+          address: { type: 'string' }, notes: { type: 'string' },
+        } } } } },
+        responses: {
+          '200': { description: 'Client updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Client' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Client not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '409': { description: 'Document number already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      delete: {
+        tags: ['Clients'],
+        summary: 'Delete client (soft delete)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Client deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'Client not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
     '/auth/login': {
       post: {
         tags: ['Auth'],
