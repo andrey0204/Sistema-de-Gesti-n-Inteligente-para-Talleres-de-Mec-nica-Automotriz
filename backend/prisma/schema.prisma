@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  ADMIN
+  RECEPTIONIST
+  MECHANIC
+}
+
+enum DocumentType {
+  CC
+  CE
+  NIT
+  PASSPORT
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  ELECTRIC
+  HYBRID
+  GAS
+}
+
+enum WorkOrderStatus {
+  PENDING
+  DIAGNOSED
+  IN_PROGRESS
+  COMPLETED
+  DELIVERED
+  CANCELLED
+}
+
+enum WorkOrderItemType {
+  SERVICE
+  PART
+}
+
+enum ReminderStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+}
+
+// ============================================================
+// MODELS
+// ============================================================
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  fullName  String
+  role      Role      @default(MECHANIC)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  assignedOrders WorkOrder[] @relation("AssignedMechanic")
+  createdOrders  WorkOrder[] @relation("OrderCreator")
+  refreshTokens  RefreshToken[]
+
+  @@map("users")
+}
+
+model Client {
+  id             Int          @id @default(autoincrement())
+  fullName       String
+  phone          String
+  documentType   DocumentType
+  documentNumber String       @unique
+  email          String?
+  address        String?
+  notes          String?      @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  vehicles   Vehicle[]
+  workOrders WorkOrder[]
+
+  @@index([fullName])
+  @@index([phone])
+  @@map("clients")
+}
+
+model Vehicle {
+  id             Int       @id @default(autoincrement())
+  plate          String    @unique
+  brand          String
+  model          String
+  year           Int?
+  color          String?
+  vin            String?   @unique
+  fuelType       FuelType?
+  currentMileage Int?
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  clientId             Int
+  client               Client               @relation(fields: [clientId], references: [id])
+  workOrders           WorkOrder[]
+  maintenanceReminders MaintenanceReminder[]
+
+  @@index([clientId])
+  @@map("vehicles")
+}
+
+model WorkOrder {
+  id                 Int             @id @default(autoincrement())
+  status             WorkOrderStatus @default(PENDING)
+  diagnosis          String?         @db.Text
+  estimatedCost      Decimal?        @db.Decimal(10, 2)
+  finalCost          Decimal?        @db.Decimal(10, 2)
+  observations       String?         @db.Text
+  mileageAtReception Int?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  clientId         Int
+  vehicleId        Int
+  assignedToUserId Int?
+  createdByUserId  Int
+
+  client     Client           @relation(fields: [clientId], references: [id])
+  vehicle    Vehicle          @relation(fields: [vehicleId], references: [id])
+  assignedTo User?            @relation("AssignedMechanic", fields: [assignedToUserId], references: [id])
+  createdBy  User             @relation("OrderCreator", fields: [createdByUserId], references: [id])
+  items      WorkOrderItem[]
+  images     WorkOrderImage[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([vehicleId])
+  @@index([assignedToUserId])
+  @@index([createdAt])
+  @@map("work_orders")
+}
+
+model WorkOrderItem {
+  id          Int               @id @default(autoincrement())
+  type        WorkOrderItemType
+  description String
+  quantity    Int               @default(1)
+  unitPrice   Decimal           @db.Decimal(10, 2)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workOrderId Int
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("work_order_items")
+}
+
+model WorkOrderImage {
+  id           Int      @id @default(autoincrement())
+  filename     String
+  originalName String
+  mimeType     String
+  path         String
+  size         Int
+  createdAt    DateTime @default(now())
+
+  workOrderId Int
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  @@index([workOrderId])
+  @@map("work_order_images")
+}
+
+model MaintenanceReminder {
+  id            Int            @id @default(autoincrement())
+  description   String
+  scheduledDate DateTime
+  status        ReminderStatus @default(PENDING)
+  notes         String?        @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  vehicleId Int
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([scheduledDate])
+  @@index([status])
+  @@map("maintenance_reminders")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
