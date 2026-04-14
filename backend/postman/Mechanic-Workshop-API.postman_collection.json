@@ -1,0 +1,569 @@
+{
+  "info": {
+    "name": "Mechanic Workshop API",
+    "description": "API for the Mechanic Workshop Management System.\n\nSetup:\n1. Run \"Login\" request first — tokens are saved automatically.\n2. All authenticated requests use {{accessToken}} from collection variables.\n3. When the access token expires, run \"Refresh Tokens\".",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@workshop.com\",\n  \"password\": \"Admin123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Refresh Tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success) {",
+                  "  pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', res.data.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "role", "value": "MECHANIC", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@workshop.com\",\n  \"password\": \"Secure123!\",\n  \"fullName\": \"New User\",\n  \"role\": \"MECHANIC\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/1", "host": ["{{baseUrl}}"], "path": ["users", "1"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/users/1", "host": ["{{baseUrl}}"], "path": ["users", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Deactivate User (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/users/1", "host": ["{{baseUrl}}"], "path": ["users", "1"] }
+          }
+        },
+        {
+          "name": "Restore User",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/users/1/restore", "host": ["{{baseUrl}}"], "path": ["users", "1", "restore"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "List Clients",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clients?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["clients"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Client",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/clients", "host": ["{{baseUrl}}"], "path": ["clients"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Maria Garcia\",\n  \"phone\": \"3109876543\",\n  \"documentType\": \"CC\",\n  \"documentNumber\": \"9876543210\",\n  \"email\": \"maria@email.com\",\n  \"address\": \"Carrera 10 #20-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Client by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/clients/1", "host": ["{{baseUrl}}"], "path": ["clients", "1"] }
+          }
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/clients/1", "host": ["{{baseUrl}}"], "path": ["clients", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"3201112233\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete Client (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/clients/1", "host": ["{{baseUrl}}"], "path": ["clients", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "List Vehicles",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/vehicles?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["vehicles"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "clientId", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/vehicles", "host": ["{{baseUrl}}"], "path": ["vehicles"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plate\": \"DEF-456\",\n  \"brand\": \"Chevrolet\",\n  \"model\": \"Spark\",\n  \"year\": 2020,\n  \"color\": \"Blanco\",\n  \"fuelType\": \"GASOLINE\",\n  \"currentMileage\": 30000,\n  \"clientId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Vehicle by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] }
+          }
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentMileage\": 48000\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/vehicles/1", "host": ["{{baseUrl}}"], "path": ["vehicles", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Work Orders",
+      "item": [
+        {
+          "name": "List Work Orders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/work-orders?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["work-orders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "PENDING", "disabled": true },
+                { "key": "assignedToUserId", "value": "2", "disabled": true },
+                { "key": "clientId", "value": "1", "disabled": true },
+                { "key": "vehicleId", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Work Order",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/work-orders", "host": ["{{baseUrl}}"], "path": ["work-orders"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"vehicleId\": 1,\n  \"assignedToUserId\": 2,\n  \"mileageAtReception\": 45000,\n  \"observations\": \"Cliente reporta ruido en frenos\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Work Order by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/work-orders/1", "host": ["{{baseUrl}}"], "path": ["work-orders", "1"] }
+          }
+        },
+        {
+          "name": "Update Work Order",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/work-orders/1", "host": ["{{baseUrl}}"], "path": ["work-orders", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"diagnosis\": \"Pastillas de freno desgastadas\",\n  \"estimatedCost\": 350000\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Update Status",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/status", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DIAGNOSED\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Assign Mechanic",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/assign", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "assign"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assignedToUserId\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Work Order Items",
+      "item": [
+        {
+          "name": "List Items",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/items", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "items"] }
+          }
+        },
+        {
+          "name": "Add Item",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/items", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"SERVICE\",\n  \"description\": \"Cambio de pastillas de freno\",\n  \"quantity\": 1,\n  \"unitPrice\": 85000\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/items/1", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "items", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unitPrice\": 90000\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/items/1", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "items", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Work Order Images",
+      "item": [
+        {
+          "name": "List Images",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/images", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "images"] }
+          }
+        },
+        {
+          "name": "Upload Image",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/images", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "images"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Image",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/work-orders/1/images/1", "host": ["{{baseUrl}}"], "path": ["work-orders", "1", "images", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maintenance Reminders",
+      "item": [
+        {
+          "name": "List Reminders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/maintenance-reminders?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["maintenance-reminders"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "PENDING", "disabled": true },
+                { "key": "vehicleId", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Reminder",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/maintenance-reminders", "host": ["{{baseUrl}}"], "path": ["maintenance-reminders"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Cambio de aceite\",\n  \"scheduledDate\": \"2026-05-15T00:00:00.000Z\",\n  \"vehicleId\": 1,\n  \"notes\": \"Usar aceite sintético 5W-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Reminder by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/maintenance-reminders/1", "host": ["{{baseUrl}}"], "path": ["maintenance-reminders", "1"] }
+          }
+        },
+        {
+          "name": "Update Reminder",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/maintenance-reminders/1", "host": ["{{baseUrl}}"], "path": ["maintenance-reminders", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Usar aceite sintético 5W-30 — urgente\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Complete Reminder",
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{baseUrl}}/maintenance-reminders/1/complete", "host": ["{{baseUrl}}"], "path": ["maintenance-reminders", "1", "complete"] }
+          }
+        },
+        {
+          "name": "Delete Reminder",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/maintenance-reminders/1", "host": ["{{baseUrl}}"], "path": ["maintenance-reminders", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Orders by Period",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports/orders-by-period?from=2026-01-01&to=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "orders-by-period"],
+              "query": [
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Orders by Status",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/reports/orders-by-status", "host": ["{{baseUrl}}"], "path": ["reports", "orders-by-status"] }
+          }
+        },
+        {
+          "name": "Vehicles by Period",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports/vehicles-by-period?from=2026-01-01&to=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "vehicles-by-period"],
+              "query": [
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clients by Period",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/reports/clients-by-period?from=2026-01-01&to=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "clients-by-period"],
+              "query": [
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "noauth" },
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    }
+  ]
+}

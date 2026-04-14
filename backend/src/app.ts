@@ -33,14 +33,16 @@ app.use('/uploads', express.static(path.resolve(env.UPLOAD_DIR)));
 // Swagger UI
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// OpenAPI spec as JSON
+// OpenAPI spec as JSON (download)
 app.get('/docs/openapi.json', (_req, res) => {
+  res.set('Content-Disposition', 'attachment; filename="openapi.json"');
   res.json(swaggerDocument);
 });
 
-// OpenAPI spec as YAML
+// OpenAPI spec as YAML (download)
 app.get('/docs/openapi.yaml', (_req, res) => {
   res.set('Content-Type', 'text/yaml');
+  res.set('Content-Disposition', 'attachment; filename="openapi.yaml"');
   res.send(YAML.stringify(swaggerDocument));
 });
 
