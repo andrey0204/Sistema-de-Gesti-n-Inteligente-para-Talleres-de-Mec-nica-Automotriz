@@ -74,6 +74,32 @@ export const swaggerDocument = {
           updatedAt: { type: 'string', format: 'date-time' },
         },
       },
+      Vehicle: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          plate: { type: 'string', example: 'ABC-123' },
+          brand: { type: 'string', example: 'Toyota' },
+          model: { type: 'string', example: 'Corolla' },
+          year: { type: 'integer', nullable: true, example: 2021 },
+          color: { type: 'string', nullable: true, example: 'Negro' },
+          vin: { type: 'string', nullable: true, example: '1HGBH41JXMN109186' },
+          fuelType: { type: 'string', nullable: true, enum: ['GASOLINE', 'DIESEL', 'ELECTRIC', 'HYBRID', 'GAS'] },
+          currentMileage: { type: 'integer', nullable: true, example: 45000 },
+          notes: { type: 'string', nullable: true },
+          clientId: { type: 'integer', example: 1 },
+          client: {
+            type: 'object',
+            properties: {
+              id: { type: 'integer', example: 1 },
+              fullName: { type: 'string', example: 'Juan Perez' },
+              phone: { type: 'string', example: '3001234567' },
+            },
+          },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   security: [{ bearerAuth: [] }],
@@ -81,6 +107,7 @@ export const swaggerDocument = {
     { name: 'Auth', description: 'Authentication endpoints' },
     { name: 'Users', description: 'User management (admin only)' },
     { name: 'Clients', description: 'Client management' },
+    { name: 'Vehicles', description: 'Vehicle management' },
   ],
   paths: {
     '/clients': {
@@ -397,6 +424,87 @@ export const swaggerDocument = {
             },
           },
           '401': { description: 'Unauthorized', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/vehicles': {
+      get: {
+        tags: ['Vehicles'],
+        summary: 'List vehicles',
+        description: 'Get a paginated list of vehicles with optional search by plate, brand, or model',
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+          { in: 'query', name: 'search', schema: { type: 'string' }, description: 'Search by plate, brand, or model' },
+          { in: 'query', name: 'clientId', schema: { type: 'integer' }, description: 'Filter by client ID' },
+        ],
+        responses: {
+          '200': { description: 'List of vehicles', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/Vehicle' } },
+            meta: { $ref: '#/components/schemas/PaginationMeta' },
+          } } } } },
+        },
+      },
+      post: {
+        tags: ['Vehicles'],
+        summary: 'Create vehicle',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['plate', 'brand', 'model', 'clientId'],
+          properties: {
+            plate: { type: 'string', example: 'ABC-123' },
+            brand: { type: 'string', example: 'Toyota' },
+            model: { type: 'string', example: 'Corolla' },
+            year: { type: 'integer', example: 2021 },
+            color: { type: 'string', example: 'Negro' },
+            vin: { type: 'string', example: '1HGBH41JXMN109186' },
+            fuelType: { type: 'string', enum: ['GASOLINE', 'DIESEL', 'ELECTRIC', 'HYBRID', 'GAS'] },
+            currentMileage: { type: 'integer', example: 45000 },
+            notes: { type: 'string' },
+            clientId: { type: 'integer', example: 1 },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Vehicle created', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Vehicle' }, message: { type: 'string' } } } } } },
+          '409': { description: 'Plate or VIN already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '422': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/vehicles/{id}': {
+      get: {
+        tags: ['Vehicles'],
+        summary: 'Get vehicle by ID',
+        description: 'Mechanics can also access this endpoint (read-only)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Vehicle details', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Vehicle' } } } } } },
+          '404': { description: 'Vehicle not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      patch: {
+        tags: ['Vehicles'],
+        summary: 'Update vehicle',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: {
+          plate: { type: 'string' }, brand: { type: 'string' }, model: { type: 'string' },
+          year: { type: 'integer' }, color: { type: 'string' }, vin: { type: 'string' },
+          fuelType: { type: 'string', enum: ['GASOLINE', 'DIESEL', 'ELECTRIC', 'HYBRID', 'GAS'] },
+          currentMileage: { type: 'integer' }, notes: { type: 'string' }, clientId: { type: 'integer' },
+        } } } } },
+        responses: {
+          '200': { description: 'Vehicle updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/Vehicle' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Vehicle not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '409': { description: 'Plate or VIN already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      delete: {
+        tags: ['Vehicles'],
+        summary: 'Delete vehicle (soft delete)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Vehicle deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'Vehicle not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
         },
       },
     },

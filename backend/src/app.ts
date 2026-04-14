@@ -11,6 +11,7 @@ import { env } from './config/env';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import clientRoutes from './modules/clients/clients.routes';
+import vehicleRoutes from './modules/vehicles/vehicles.routes';
 
 const app = express();
 
@@ -47,7 +48,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
-// app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/vehicles', vehicleRoutes);
 // app.use('/api/work-orders', workOrderRoutes);
 // app.use('/api/maintenance-reminders', maintenanceReminderRoutes);
 // app.use('/api/reports', reportRoutes);
