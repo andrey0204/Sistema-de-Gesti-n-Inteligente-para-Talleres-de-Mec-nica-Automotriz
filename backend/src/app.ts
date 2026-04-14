@@ -12,6 +12,11 @@ import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import clientRoutes from './modules/clients/clients.routes';
 import vehicleRoutes from './modules/vehicles/vehicles.routes';
+import workOrderRoutes from './modules/work-orders/work-orders.routes';
+import workOrderItemRoutes from './modules/work-order-items/work-order-items.routes';
+import workOrderImageRoutes from './modules/work-order-images/work-order-images.routes';
+import maintenanceReminderRoutes from './modules/maintenance-reminders/maintenance-reminders.routes';
+import reportRoutes from './modules/reports/reports.routes';
 
 const app = express();
 
@@ -49,9 +54,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/vehicles', vehicleRoutes);
-// app.use('/api/work-orders', workOrderRoutes);
-// app.use('/api/maintenance-reminders', maintenanceReminderRoutes);
-// app.use('/api/reports', reportRoutes);
+app.use('/api/work-orders', workOrderRoutes);
+app.use('/api/work-orders/:workOrderId/items', workOrderItemRoutes);
+app.use('/api/work-orders/:workOrderId/images', workOrderImageRoutes);
+app.use('/api/maintenance-reminders', maintenanceReminderRoutes);
+app.use('/api/reports', reportRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

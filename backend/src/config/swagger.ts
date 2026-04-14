@@ -100,6 +100,68 @@ export const swaggerDocument = {
           updatedAt: { type: 'string', format: 'date-time' },
         },
       },
+      WorkOrder: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          status: { type: 'string', enum: ['PENDING', 'DIAGNOSED', 'IN_PROGRESS', 'COMPLETED', 'DELIVERED', 'CANCELLED'], example: 'PENDING' },
+          diagnosis: { type: 'string', nullable: true },
+          estimatedCost: { type: 'number', nullable: true, example: 350000 },
+          finalCost: { type: 'number', nullable: true, example: 320000 },
+          observations: { type: 'string', nullable: true },
+          mileageAtReception: { type: 'integer', nullable: true, example: 45000 },
+          clientId: { type: 'integer', example: 1 },
+          vehicleId: { type: 'integer', example: 1 },
+          assignedToUserId: { type: 'integer', nullable: true, example: 2 },
+          createdByUserId: { type: 'integer', example: 1 },
+          client: { type: 'object', properties: { id: { type: 'integer' }, fullName: { type: 'string' }, phone: { type: 'string' } } },
+          vehicle: { type: 'object', properties: { id: { type: 'integer' }, plate: { type: 'string' }, brand: { type: 'string' }, model: { type: 'string' } } },
+          assignedTo: { type: 'object', nullable: true, properties: { id: { type: 'integer' }, fullName: { type: 'string' }, email: { type: 'string' } } },
+          createdBy: { type: 'object', properties: { id: { type: 'integer' }, fullName: { type: 'string' }, email: { type: 'string' } } },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      WorkOrderItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          type: { type: 'string', enum: ['SERVICE', 'PART'], example: 'SERVICE' },
+          description: { type: 'string', example: 'Cambio de pastillas de freno' },
+          quantity: { type: 'integer', example: 1 },
+          unitPrice: { type: 'number', example: 85000 },
+          workOrderId: { type: 'integer', example: 1 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      WorkOrderImage: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          filename: { type: 'string', example: 'a1b2c3d4.jpg' },
+          originalName: { type: 'string', example: 'foto-frenos.jpg' },
+          mimeType: { type: 'string', example: 'image/jpeg' },
+          path: { type: 'string' },
+          size: { type: 'integer', example: 245000 },
+          workOrderId: { type: 'integer', example: 1 },
+          createdAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      MaintenanceReminder: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          description: { type: 'string', example: 'Cambio de aceite' },
+          scheduledDate: { type: 'string', format: 'date-time' },
+          status: { type: 'string', enum: ['PENDING', 'COMPLETED', 'OVERDUE'], example: 'PENDING' },
+          notes: { type: 'string', nullable: true },
+          vehicleId: { type: 'integer', example: 1 },
+          vehicle: { type: 'object', properties: { id: { type: 'integer' }, plate: { type: 'string' }, brand: { type: 'string' }, model: { type: 'string' } } },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
     },
   },
   security: [{ bearerAuth: [] }],
@@ -108,6 +170,11 @@ export const swaggerDocument = {
     { name: 'Users', description: 'User management (admin only)' },
     { name: 'Clients', description: 'Client management' },
     { name: 'Vehicles', description: 'Vehicle management' },
+    { name: 'Work Orders', description: 'Work order management with state machine' },
+    { name: 'Work Order Items', description: 'Services and parts within a work order' },
+    { name: 'Work Order Images', description: 'Evidence images for work orders' },
+    { name: 'Maintenance Reminders', description: 'Scheduled maintenance reminders for vehicles' },
+    { name: 'Reports', description: 'Business reports and analytics' },
   ],
   paths: {
     '/clients': {
@@ -505,6 +572,373 @@ export const swaggerDocument = {
         responses: {
           '200': { description: 'Vehicle deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
           '404': { description: 'Vehicle not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders': {
+      get: {
+        tags: ['Work Orders'],
+        summary: 'List work orders',
+        description: 'Paginated list with filters. Mechanics only see their assigned orders.',
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+          { in: 'query', name: 'status', schema: { type: 'string', enum: ['PENDING', 'DIAGNOSED', 'IN_PROGRESS', 'COMPLETED', 'DELIVERED', 'CANCELLED'] } },
+          { in: 'query', name: 'assignedToUserId', schema: { type: 'integer' }, description: 'Filter by assigned mechanic' },
+          { in: 'query', name: 'clientId', schema: { type: 'integer' } },
+          { in: 'query', name: 'vehicleId', schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': { description: 'List of work orders', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/WorkOrder' } },
+            meta: { $ref: '#/components/schemas/PaginationMeta' },
+          } } } } },
+        },
+      },
+      post: {
+        tags: ['Work Orders'],
+        summary: 'Create work order',
+        description: 'Admin and Receptionist only. createdByUserId is set automatically.',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['clientId', 'vehicleId'],
+          properties: {
+            clientId: { type: 'integer', example: 1 },
+            vehicleId: { type: 'integer', example: 1 },
+            assignedToUserId: { type: 'integer', example: 2 },
+            mileageAtReception: { type: 'integer', example: 45000 },
+            diagnosis: { type: 'string' },
+            observations: { type: 'string' },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Work order created', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrder' }, message: { type: 'string' } } } } } },
+          '422': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{id}': {
+      get: {
+        tags: ['Work Orders'],
+        summary: 'Get work order by ID',
+        description: 'Includes items. Mechanics can only view assigned orders.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Work order details', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrder' } } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      patch: {
+        tags: ['Work Orders'],
+        summary: 'Update work order',
+        description: 'Edit diagnosis, costs, observations. Mechanics can only edit assigned orders.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: {
+          diagnosis: { type: 'string' },
+          estimatedCost: { type: 'number', example: 350000 },
+          finalCost: { type: 'number', example: 320000 },
+          observations: { type: 'string' },
+          mileageAtReception: { type: 'integer' },
+        } } } } },
+        responses: {
+          '200': { description: 'Work order updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrder' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{id}/status': {
+      patch: {
+        tags: ['Work Orders'],
+        summary: 'Update work order status',
+        description: 'State machine: PENDING→DIAGNOSED→IN_PROGRESS→COMPLETED→DELIVERED. Admin can rollback. CANCELLED is final.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['status'],
+          properties: {
+            status: { type: 'string', enum: ['PENDING', 'DIAGNOSED', 'IN_PROGRESS', 'COMPLETED', 'DELIVERED', 'CANCELLED'] },
+          },
+        } } } },
+        responses: {
+          '200': { description: 'Status updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrder' }, message: { type: 'string' } } } } } },
+          '400': { description: 'Invalid transition', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{id}/assign': {
+      patch: {
+        tags: ['Work Orders'],
+        summary: 'Assign mechanic',
+        description: 'Admin and Receptionist only.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['assignedToUserId'],
+          properties: {
+            assignedToUserId: { type: 'integer', example: 2 },
+          },
+        } } } },
+        responses: {
+          '200': { description: 'Mechanic assigned', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrder' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{workOrderId}/items': {
+      get: {
+        tags: ['Work Order Items'],
+        summary: 'List items of a work order',
+        parameters: [{ in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'List of items', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/WorkOrderItem' } },
+          } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      post: {
+        tags: ['Work Order Items'],
+        summary: 'Add item to work order',
+        description: 'Admin and Mechanic (assigned only).',
+        parameters: [{ in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['type', 'description', 'unitPrice'],
+          properties: {
+            type: { type: 'string', enum: ['SERVICE', 'PART'], example: 'SERVICE' },
+            description: { type: 'string', example: 'Cambio de pastillas de freno' },
+            quantity: { type: 'integer', default: 1, example: 1 },
+            unitPrice: { type: 'number', example: 85000 },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Item created', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrderItem' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{workOrderId}/items/{id}': {
+      patch: {
+        tags: ['Work Order Items'],
+        summary: 'Update item',
+        parameters: [
+          { in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } },
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: {
+          type: { type: 'string', enum: ['SERVICE', 'PART'] },
+          description: { type: 'string' },
+          quantity: { type: 'integer' },
+          unitPrice: { type: 'number' },
+        } } } } },
+        responses: {
+          '200': { description: 'Item updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrderItem' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Item or work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      delete: {
+        tags: ['Work Order Items'],
+        summary: 'Delete item',
+        parameters: [
+          { in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } },
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': { description: 'Item deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'Item or work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{workOrderId}/images': {
+      get: {
+        tags: ['Work Order Images'],
+        summary: 'List images of a work order',
+        parameters: [{ in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'List of images', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/WorkOrderImage' } },
+          } } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      post: {
+        tags: ['Work Order Images'],
+        summary: 'Upload image',
+        description: 'Accepts JPEG, PNG, WebP, GIF (max 5MB). Use multipart/form-data with field name "image".',
+        parameters: [{ in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'multipart/form-data': { schema: { type: 'object',
+          required: ['image'],
+          properties: {
+            image: { type: 'string', format: 'binary' },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Image uploaded', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/WorkOrderImage' }, message: { type: 'string' } } } } } },
+          '400': { description: 'No file or invalid format', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '404': { description: 'Work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/work-orders/{workOrderId}/images/{id}': {
+      delete: {
+        tags: ['Work Order Images'],
+        summary: 'Delete image',
+        description: 'Admin only. Removes file from storage.',
+        parameters: [
+          { in: 'path', name: 'workOrderId', required: true, schema: { type: 'integer' } },
+          { in: 'path', name: 'id', required: true, schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': { description: 'Image deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'Image or work order not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/maintenance-reminders': {
+      get: {
+        tags: ['Maintenance Reminders'],
+        summary: 'List reminders',
+        parameters: [
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+          { in: 'query', name: 'status', schema: { type: 'string', enum: ['PENDING', 'COMPLETED', 'OVERDUE'] } },
+          { in: 'query', name: 'vehicleId', schema: { type: 'integer' } },
+        ],
+        responses: {
+          '200': { description: 'List of reminders', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean', example: true },
+            data: { type: 'array', items: { $ref: '#/components/schemas/MaintenanceReminder' } },
+            meta: { $ref: '#/components/schemas/PaginationMeta' },
+          } } } } },
+        },
+      },
+      post: {
+        tags: ['Maintenance Reminders'],
+        summary: 'Create reminder',
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object',
+          required: ['description', 'scheduledDate', 'vehicleId'],
+          properties: {
+            description: { type: 'string', example: 'Cambio de aceite' },
+            scheduledDate: { type: 'string', format: 'date-time', example: '2026-05-15T00:00:00.000Z' },
+            notes: { type: 'string' },
+            vehicleId: { type: 'integer', example: 1 },
+          },
+        } } } },
+        responses: {
+          '201': { description: 'Reminder created', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/MaintenanceReminder' }, message: { type: 'string' } } } } } },
+          '422': { description: 'Validation error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/maintenance-reminders/{id}': {
+      get: {
+        tags: ['Maintenance Reminders'],
+        summary: 'Get reminder by ID',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Reminder details', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/MaintenanceReminder' } } } } } },
+          '404': { description: 'Reminder not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      patch: {
+        tags: ['Maintenance Reminders'],
+        summary: 'Update reminder',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', properties: {
+          description: { type: 'string' },
+          scheduledDate: { type: 'string', format: 'date-time' },
+          notes: { type: 'string' },
+          status: { type: 'string', enum: ['PENDING', 'COMPLETED', 'OVERDUE'] },
+        } } } } },
+        responses: {
+          '200': { description: 'Reminder updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/MaintenanceReminder' }, message: { type: 'string' } } } } } },
+          '404': { description: 'Reminder not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+      delete: {
+        tags: ['Maintenance Reminders'],
+        summary: 'Delete reminder',
+        description: 'Admin only.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Reminder deleted', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '404': { description: 'Reminder not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/maintenance-reminders/{id}/complete': {
+      patch: {
+        tags: ['Maintenance Reminders'],
+        summary: 'Mark reminder as completed',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: {
+          '200': { description: 'Reminder completed', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/MaintenanceReminder' }, message: { type: 'string' } } } } } },
+          '400': { description: 'Already completed', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+          '404': { description: 'Reminder not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+        },
+      },
+    },
+    '/reports/orders-by-period': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Orders by period',
+        description: 'Get work orders within a date range.',
+        parameters: [
+          { in: 'query', name: 'from', required: true, schema: { type: 'string', format: 'date' }, example: '2026-01-01' },
+          { in: 'query', name: 'to', required: true, schema: { type: 'string', format: 'date' }, example: '2026-12-31' },
+        ],
+        responses: {
+          '200': { description: 'Report data', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean' },
+            data: { type: 'object', properties: { total: { type: 'integer' }, from: { type: 'string' }, to: { type: 'string' }, orders: { type: 'array', items: { $ref: '#/components/schemas/WorkOrder' } } } },
+          } } } } },
+        },
+      },
+    },
+    '/reports/orders-by-status': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Orders grouped by status',
+        responses: {
+          '200': { description: 'Report data', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean' },
+            data: { type: 'object', properties: {
+              total: { type: 'integer' },
+              byStatus: { type: 'array', items: { type: 'object', properties: { status: { type: 'string' }, count: { type: 'integer' } } } },
+            } },
+          } } } } },
+        },
+      },
+    },
+    '/reports/vehicles-by-period': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Vehicles serviced by period',
+        parameters: [
+          { in: 'query', name: 'from', required: true, schema: { type: 'string', format: 'date' }, example: '2026-01-01' },
+          { in: 'query', name: 'to', required: true, schema: { type: 'string', format: 'date' }, example: '2026-12-31' },
+        ],
+        responses: {
+          '200': { description: 'Report data', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean' },
+            data: { type: 'object', properties: { total: { type: 'integer' }, from: { type: 'string' }, to: { type: 'string' }, vehicles: { type: 'array', items: { $ref: '#/components/schemas/Vehicle' } } } },
+          } } } } },
+        },
+      },
+    },
+    '/reports/clients-by-period': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Clients served by period',
+        parameters: [
+          { in: 'query', name: 'from', required: true, schema: { type: 'string', format: 'date' }, example: '2026-01-01' },
+          { in: 'query', name: 'to', required: true, schema: { type: 'string', format: 'date' }, example: '2026-12-31' },
+        ],
+        responses: {
+          '200': { description: 'Report data', content: { 'application/json': { schema: { type: 'object', properties: {
+            success: { type: 'boolean' },
+            data: { type: 'object', properties: { total: { type: 'integer' }, from: { type: 'string' }, to: { type: 'string' }, clients: { type: 'array', items: { $ref: '#/components/schemas/Client' } } } },
+          } } } } },
         },
       },
     },
