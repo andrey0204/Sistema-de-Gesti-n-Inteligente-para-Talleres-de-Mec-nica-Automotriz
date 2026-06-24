@@ -4,3 +4,7 @@ uploads/*
 !uploads/.gitkeep
 .env
 *.log
+
+# Documentos de bitácoras (no se versionan)
+Bitacoras.md
+Bitacora-01-Sustentacion.md

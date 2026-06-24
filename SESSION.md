@@ -18,7 +18,7 @@
 | 5 | Órdenes de trabajo + state machine | Completa | `0ba8f27` |
 | 6 | Items de orden + imágenes | Completa | `9dc6c82` |
 | 7 | Recordatorios + reportes | Completa | `f66220b` |
-| 8 | Documentación final (OpenAPI, Postman, README) | Completa | — |
+| 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
 
 ## Stack Confirmado
 
@@ -47,8 +47,13 @@
 - `REQUIREMENTS.md` — Especificación completa del MVP
 - `ARCHITECTURE.md` — Diseño de arquitectura, schema Prisma, plan de fases, endpoints
 - `backend/prisma/schema.prisma` — 8 modelos, 6 enums
-- `backend/src/config/swagger.ts` — Documentación OpenAPI (crece con cada fase)
+- `backend/src/config/swagger.ts` — Documentación OpenAPI completa
+- `backend/README.md` — Documentación del proyecto
+- `backend/postman/` — Colección Postman con auto-token
 
 ## Próximo Paso
 
-MVP backend completo. Posibles extensiones: tests automatizados, deploy, frontend.
+MVP backend completo. Decidir siguiente paso:
+- **Frontend** (Vue 3 + Vite + Pinia + Tailwind/DaisyUI) — login, dashboard, CRUDs, recordatorios
+- **Tests automatizados** — integración de endpoints
+- **Deploy** — Railway, Render, o VPS para demostración
