@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-04-14  
+**Última actualización:** 2026-06-24  
 **Branch:** main  
-**Sesión finalizada:** 2026-04-14 — Fases 0-8 completas (MVP terminado)
+**Sesión finalizada:** 2026-06-24 — Documentación de bitácoras 1-7 + stack frontend definido. Próximo: frontend Vue 3.
 
 ---
 
@@ -22,9 +22,17 @@
 
 ## Stack Confirmado
 
+**Backend:**
 - Express 5 + TypeScript 6 + Prisma 6 + Zod v4 + MySQL 8
 - JWT access token (15min) + refresh token (7 días) con rotación
 - Arquitectura por módulos: validator → repository → service → controller → routes
+
+**Frontend (pendiente de iniciar — Bitácora 8):**
+- Vue 3 + TypeScript + Vite
+- Pinia (estado) + Vue Router (navegación)
+- Tailwind CSS + DaisyUI (estilos/UI)
+- Axios (API) + VeeValidate + Zod (formularios/validación)
+- Auth: JWT del backend + Route Guards + store de auth con Pinia
 
 ## Decisiones Técnicas Tomadas
 
@@ -51,9 +59,34 @@
 - `backend/README.md` — Documentación del proyecto
 - `backend/postman/` — Colección Postman con auto-token
 
+## Bitácoras Académicas (seguimiento SENA)
+
+El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que tiene 6). Archivos **locales, ignorados por git** (`.gitignore`): `backend/Bitacoras.md` y `backend/Bitacora-01-Sustentacion.md`.
+
+| Bitácora | Tema | Estado |
+|----------|------|--------|
+| 1 | Análisis, requisitos y planeación | Documentada + sustentación detallada |
+| 2 | Arquitectura y diseño | Documentada |
+| 3 | Auth + Usuarios (6 actividades) | Documentada |
+| 4 | Clientes | Documentada |
+| 5 | Vehículos | Documentada |
+| 6 | Órdenes de trabajo | Documentada |
+| 7 | Historial técnico y recordatorios | Documentada |
+| 8 | Frontend base | Pendiente (al hacer frontend) |
+| 9 | Integración frontend-backend | Pendiente |
+| 10 | Pruebas y validaciones | Pendiente |
+| 11 | Despliegue e implementación | Pendiente |
+| 12 | Evaluación, mejoras y cierre | Pendiente |
+
+- Formato adoptado: **bloques por actividad** (Descripción / Competencia / Fecha inicio / Fecha fin / Evidencia / Observaciones).
+- Competencias del curso: 220501092 a 220501098.
+
 ## Próximo Paso
 
-MVP backend completo. Decidir siguiente paso:
-- **Frontend** (Vue 3 + Vite + Pinia + Tailwind/DaisyUI) — login, dashboard, CRUDs, recordatorios
-- **Tests automatizados** — integración de endpoints
-- **Deploy** — Railway, Render, o VPS para demostración
+**Iniciar el frontend (Bitácora 8)** con el stack Vue 3 definido arriba:
+- Setup del proyecto (Vite + Vue 3 + TS + Tailwind/DaisyUI + Pinia + Vue Router)
+- Login + store de auth (JWT) + Route Guards
+- Layout/dashboard y luego CRUDs (clientes, vehículos, órdenes), recordatorios y reportes
+- Documentar avances en Bitácoras 8 y 9 a medida que se desarrolla
+
+Pendientes posteriores: tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).
