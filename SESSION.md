@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-06-24  
+**Última actualización:** 2026-08-05  
 **Branch:** main  
-**Sesión finalizada:** 2026-06-24 — Documentación de bitácoras 1-7 + stack frontend definido. Próximo: frontend Vue 3.
+**Sesión finalizada:** 2026-08-05 — Creados los archivos de sustentación de las bitácoras 4-7. Con esto, las 7 bitácoras documentadas tienen su sustentación detallada. Próximo: frontend Vue 3.
 
 ---
 
@@ -61,17 +61,17 @@
 
 ## Bitácoras Académicas (seguimiento SENA)
 
-El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que tiene 6). Archivos **locales, ignorados por git** (`.gitignore`): `backend/Bitacoras.md` y `backend/Bitacora-01-Sustentacion.md`.
+El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que tiene 6). Archivos **locales, ignorados por git** (`.gitignore`): `backend/Bitacoras.md` y `backend/Bitacora-*-Sustentacion.md`.
 
 | Bitácora | Tema | Estado |
 |----------|------|--------|
-| 1 | Análisis, requisitos y planeación | Documentada + sustentación detallada |
-| 2 | Arquitectura y diseño | Documentada |
-| 3 | Auth + Usuarios (6 actividades) | Documentada |
-| 4 | Clientes | Documentada |
-| 5 | Vehículos | Documentada |
-| 6 | Órdenes de trabajo | Documentada |
-| 7 | Historial técnico y recordatorios | Documentada |
+| 1 | Análisis, requisitos y planeación | Documentada + sustentación |
+| 2 | Arquitectura y diseño | Documentada + sustentación |
+| 3 | Auth + Usuarios (6 actividades) | Documentada + sustentación |
+| 4 | Clientes | Documentada + sustentación |
+| 5 | Vehículos | Documentada + sustentación |
+| 6 | Órdenes de trabajo | Documentada + sustentación |
+| 7 | Historial técnico y recordatorios | Documentada + sustentación |
 | 8 | Frontend base | Pendiente (al hacer frontend) |
 | 9 | Integración frontend-backend | Pendiente |
 | 10 | Pruebas y validaciones | Pendiente |
@@ -79,6 +79,7 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 12 | Evaluación, mejoras y cierre | Pendiente |
 
 - Formato adoptado: **bloques por actividad** (Descripción / Competencia / Fecha inicio / Fecha fin / Evidencia / Observaciones).
+- Cada bitácora (1-7) incluye al final una sección **"Evidencias recomendadas para adjuntar"** (Archivos + Capturas sugeridas, con rutas reales del repo).
 - Competencias del curso: 220501092 a 220501098.
 
 ## Próximo Paso
