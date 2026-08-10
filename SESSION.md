@@ -20,6 +20,7 @@
 | 7 | Recordatorios + reportes | Completa | `f66220b` |
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
+| 10 | Frontend: CRUD de clientes | Completa | — |
 
 ## Stack Confirmado
 
@@ -94,16 +95,32 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 ## Estado del Frontend
 
 Ya funciona: login, sesión persistente, refresh automático de token, layout con menú
-lateral filtrado por rol, panel principal, y páginas de 403/404. Los módulos de
-negocio muestran una `PlaceholderView` y se irán reemplazando uno a uno.
+lateral filtrado por rol, panel principal, páginas de 403/404 y el **CRUD de clientes
+completo** (listado con búsqueda y paginación, alta/edición en modal, baja lógica con
+confirmación, toasts). Vehículos, órdenes, recordatorios, reportes y usuarios siguen
+mostrando `PlaceholderView`.
+
+### Patrón CRUD a replicar
+
+`src/views/clients/` es la plantilla para los módulos siguientes:
+`api/<modulo>.ts` (llamadas + tipos de payload) → `<Modulo>View.vue` (listado con
+búsqueda *debounced* de 350 ms, paginación y estado sincronizado con la URL) →
+`<Modulo>FormModal.vue` (crear/editar según reciba `null` o la entidad).
+
+Componentes reutilizables ya disponibles: `BaseModal`, `ConfirmDialog`,
+`PaginationControls`, `ToastHost` + `useToast`.
+
+**Detalle del contrato del backend:** al *crear*, los campos opcionales no aceptan
+cadena vacía (hay que omitirlos del payload); al *editar* sí aceptan `null`, que es
+como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**CRUD de clientes en el frontend:**
-- `src/api/clients.ts` con los endpoints de `/api/clients`
-- Vista de listado con búsqueda y paginación (el backend devuelve `meta` con `page`/`totalPages`)
-- Formulario de alta/edición con VeeValidate + Zod, mapeando los errores 422 del backend
-- Repetir el mismo patrón después con vehículos y órdenes
+**CRUD de vehículos en el frontend**, replicando el patrón de clientes:
+- `src/api/vehicles.ts` sobre `/api/vehicles`
+- Selector de cliente en el formulario (relación `clientId`, obligatoria)
+- Campos propios: placa, marca, modelo, año, color, VIN, tipo de combustible,
+  kilometraje — ya hay etiquetas en español en `lib/labels.ts` (`fuelTypeLabels`)
 
-Pendientes posteriores: recordatorios y reportes, documentar Bitácoras 8 y 9,
-tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).
+Pendientes posteriores: órdenes de trabajo, recordatorios y reportes, documentar
+Bitácoras 8 y 9, tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).

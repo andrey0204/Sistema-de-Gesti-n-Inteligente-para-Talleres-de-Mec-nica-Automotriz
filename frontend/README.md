@@ -55,7 +55,8 @@ El backend ya permite el origen `http://localhost:5173` mediante la variable
 ```
 src/
 ├── api/          Funciones que llaman a los endpoints (una por módulo)
-├── components/   Componentes reutilizables
+├── components/   Componentes reutilizables (modal, confirmación, paginación, toasts)
+├── composables/  Lógica reutilizable (useToast)
 ├── layouts/      AppLayout (con menú lateral) para las vistas privadas
 ├── lib/          http (axios), token-storage, zod-form, format, labels
 ├── router/       Rutas y guards de autenticación/roles
@@ -63,6 +64,24 @@ src/
 ├── types/        Tipos de la API y modelos, espejo del schema de Prisma
 └── views/        Pantallas asociadas a rutas
 ```
+
+## Patrón de los módulos CRUD
+
+El módulo de clientes (`src/views/clients/`) es la plantilla para los demás:
+
+- **`api/<modulo>.ts`** concentra las llamadas HTTP y los tipos de payload.
+- **`<Modulo>View.vue`** mantiene el listado: búsqueda con *debounce* de 350 ms,
+  paginación y estados de carga, vacío y error. La página y la búsqueda se
+  reflejan en la URL (`?page=2&search=perez`) para que recargar no pierda el filtro.
+- **`<Modulo>FormModal.vue`** sirve para crear y editar: recibe `null` para crear o
+  la entidad para editar, y se reinicia cada vez que se abre.
+- Los errores de validación del backend (422) se pintan campo por campo con
+  `getFieldErrors()`, y un 409 se traduce a un mensaje concreto con `getErrorCode()`.
+- El resultado se confirma con un toast (`useToast`).
+
+Detalle a tener en cuenta al crear frente a editar: en **creación** el backend
+rechaza la cadena vacía en los campos opcionales, así que se omiten del payload;
+en **edición** sí acepta `null`, que es como se limpian.
 
 ## Autenticación
 
@@ -81,7 +100,7 @@ src/
 |------|-------|-------|
 | `/login` | Inicio de sesión | Pública |
 | `/` | Panel principal | Autenticado |
-| `/clientes` | Clientes | ADMIN, RECEPTIONIST |
+| `/clientes` | Clientes (CRUD completo) | ADMIN, RECEPTIONIST |
 | `/vehiculos` | Vehículos | ADMIN, RECEPTIONIST |
 | `/ordenes` | Órdenes de trabajo | Autenticado |
 | `/recordatorios` | Recordatorios | Autenticado |
@@ -91,8 +110,8 @@ src/
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
 
-> Los módulos distintos al panel principal muestran por ahora una vista
-> `PlaceholderView` y se irán implementando uno por uno.
+> Los módulos aún no implementados (vehículos, órdenes, recordatorios, reportes,
+> usuarios) muestran por ahora una vista `PlaceholderView`.
 
 ## Nota sobre Zod
 

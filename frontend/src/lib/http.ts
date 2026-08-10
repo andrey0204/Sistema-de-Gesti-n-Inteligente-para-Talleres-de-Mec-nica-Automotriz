@@ -106,6 +106,15 @@ export function getErrorMessage(error: unknown, fallback = 'Ocurrió un error in
 }
 
 /**
+ * Código de error del backend (`NOT_FOUND`, `CONFLICT`, `VALIDATION_ERROR`…),
+ * útil para reaccionar a un caso concreto sin mirar el mensaje.
+ */
+export function getErrorCode(error: unknown): string | null {
+  if (!axios.isAxiosError<ApiErrorResponse>(error)) return null
+  return error.response?.data?.error?.code ?? null
+}
+
+/**
  * Errores de validación (422) que devuelve el backend en `error.details`
  * como `[{ field: 'body.email', message: '...' }]`. Se devuelve un mapa
  * `campo -> mensaje` con el prefijo (`body.`/`params.`/`query.`) recortado,

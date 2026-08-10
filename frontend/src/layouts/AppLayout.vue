@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import ToastHost from '@/components/ToastHost.vue'
 import { useAuthStore } from '@/stores/auth'
 import { roleLabels } from '@/lib/labels'
 import type { Role } from '@/types/models'
@@ -88,6 +89,8 @@ async function handleLogout(): Promise<void> {
       <main class="flex-1 p-4 lg:p-6">
         <RouterView />
       </main>
+
+      <ToastHost />
     </div>
 
     <aside class="drawer-side z-30">
