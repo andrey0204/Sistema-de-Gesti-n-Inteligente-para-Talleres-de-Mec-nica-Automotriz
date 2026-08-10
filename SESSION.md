@@ -20,7 +20,7 @@
 | 7 | Recordatorios + reportes | Completa | `f66220b` |
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
-| 10 | Frontend: CRUD de clientes | Completa | — |
+| 10 | Frontend: CRUD de clientes | Completa | `46de743` |
 
 ## Stack Confirmado
 
