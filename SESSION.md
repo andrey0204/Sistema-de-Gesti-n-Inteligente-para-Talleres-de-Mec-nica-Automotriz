@@ -19,7 +19,7 @@
 | 6 | Items de orden + imágenes | Completa | `9dc6c82` |
 | 7 | Recordatorios + reportes | Completa | `f66220b` |
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
-| 9 | Frontend: setup, auth, layout y guards | Completa | — |
+| 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
 
 ## Stack Confirmado
 
