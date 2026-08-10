@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-08-05  
+**Última actualización:** 2026-08-10  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-05 — Creados los archivos de sustentación de las bitácoras 4-7. Con esto, las 7 bitácoras documentadas tienen su sustentación detallada. Próximo: frontend Vue 3.
+**Sesión finalizada:** 2026-08-10 — Setup del frontend (Fase 9): proyecto Vite + Vue 3 + TS, Tailwind 4 + DaisyUI 5, Pinia, Vue Router con guards por rol, cliente Axios con refresh automático de token y pantalla de login funcional. Próximo: CRUD de clientes.
 
 ---
 
@@ -19,6 +19,7 @@
 | 6 | Items de orden + imágenes | Completa | `9dc6c82` |
 | 7 | Recordatorios + reportes | Completa | `f66220b` |
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
+| 9 | Frontend: setup, auth, layout y guards | Completa | — |
 
 ## Stack Confirmado
 
@@ -27,12 +28,13 @@
 - JWT access token (15min) + refresh token (7 días) con rotación
 - Arquitectura por módulos: validator → repository → service → controller → routes
 
-**Frontend (pendiente de iniciar — Bitácora 8):**
-- Vue 3 + TypeScript + Vite
-- Pinia (estado) + Vue Router (navegación)
-- Tailwind CSS + DaisyUI (estilos/UI)
-- Axios (API) + VeeValidate + Zod (formularios/validación)
-- Auth: JWT del backend + Route Guards + store de auth con Pinia
+**Frontend (base implementada — Bitácora 8):**
+- Vue 3.5 + TypeScript 6 + Vite 8
+- Pinia 4 (estado) + Vue Router 5 (navegación)
+- Tailwind CSS 4 + DaisyUI 5 (plugin `@tailwindcss/vite`, temas `corporate`/`business`)
+- Axios (API) + VeeValidate 4 + Zod 4 (formularios/validación)
+- Auth: JWT del backend + Route Guards por rol + store de auth con Pinia
+- Node 24.13.1 (`frontend/.nvmrc`) — **el `default` de nvm es Node 10 y rompe Vite: usar `nvm use`**
 
 ## Decisiones Técnicas Tomadas
 
@@ -41,6 +43,10 @@
 - **Express 5**: `req.query` es readonly (getter), no se puede reasignar en middlewares
 - **Soft delete** con `deletedAt` en User, Client, Vehicle
 - **Roles RBAC**: ADMIN (total), RECEPTIONIST (clientes/vehículos/órdenes), MECHANIC (órdenes asignadas)
+- **Frontend sin `@vee-validate/zod`**: ese paquete sigue atado a Zod v3 (importa `ZodFirstPartyTypeKind`, eliminado en v4). Para no tener dos versiones de Zod en el proyecto, el adaptador `toTypedSchema` está escrito a mano en `frontend/src/lib/zod-form.ts` (~30 líneas)
+- **Sin enums de TypeScript en el frontend**: el tsconfig de Vite usa `erasableSyntaxOnly`; los enums se declaran como objetos `const` + tipo unión en `frontend/src/types/models.ts`
+- **Campos `Decimal` llegan como string** en el JSON de Prisma (ej. `"150000.00"`); se convierten en `frontend/src/lib/format.ts`
+- **Sesión en `localStorage`** gestionada desde `frontend/src/lib/token-storage.ts` (módulo aparte del store para evitar dependencia circular con el cliente Axios)
 
 ## Datos de Prueba en BD
 
@@ -58,6 +64,9 @@
 - `backend/src/config/swagger.ts` — Documentación OpenAPI completa
 - `backend/README.md` — Documentación del proyecto
 - `backend/postman/` — Colección Postman con auto-token
+- `frontend/README.md` — Stack, puesta en marcha, rutas y permisos
+- `frontend/src/lib/http.ts` — Cliente Axios con refresh automático del access token
+- `frontend/src/router/index.ts` — Rutas, `meta.roles` y guard global
 
 ## Bitácoras Académicas (seguimiento SENA)
 
@@ -72,7 +81,7 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 5 | Vehículos | Documentada + sustentación |
 | 6 | Órdenes de trabajo | Documentada + sustentación |
 | 7 | Historial técnico y recordatorios | Documentada + sustentación |
-| 8 | Frontend base | Pendiente (al hacer frontend) |
+| 8 | Frontend base | Implementada, falta documentar |
 | 9 | Integración frontend-backend | Pendiente |
 | 10 | Pruebas y validaciones | Pendiente |
 | 11 | Despliegue e implementación | Pendiente |
@@ -82,12 +91,19 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 - Cada bitácora (1-7) incluye al final una sección **"Evidencias recomendadas para adjuntar"** (Archivos + Capturas sugeridas, con rutas reales del repo).
 - Competencias del curso: 220501092 a 220501098.
 
+## Estado del Frontend
+
+Ya funciona: login, sesión persistente, refresh automático de token, layout con menú
+lateral filtrado por rol, panel principal, y páginas de 403/404. Los módulos de
+negocio muestran una `PlaceholderView` y se irán reemplazando uno a uno.
+
 ## Próximo Paso
 
-**Iniciar el frontend (Bitácora 8)** con el stack Vue 3 definido arriba:
-- Setup del proyecto (Vite + Vue 3 + TS + Tailwind/DaisyUI + Pinia + Vue Router)
-- Login + store de auth (JWT) + Route Guards
-- Layout/dashboard y luego CRUDs (clientes, vehículos, órdenes), recordatorios y reportes
-- Documentar avances en Bitácoras 8 y 9 a medida que se desarrolla
+**CRUD de clientes en el frontend:**
+- `src/api/clients.ts` con los endpoints de `/api/clients`
+- Vista de listado con búsqueda y paginación (el backend devuelve `meta` con `page`/`totalPages`)
+- Formulario de alta/edición con VeeValidate + Zod, mapeando los errores 422 del backend
+- Repetir el mismo patrón después con vehículos y órdenes
 
-Pendientes posteriores: tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).
+Pendientes posteriores: recordatorios y reportes, documentar Bitácoras 8 y 9,
+tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).

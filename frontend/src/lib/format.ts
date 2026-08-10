@@ -1,0 +1,51 @@
+/** Formateadores para mostrar datos de la API en la interfaz. */
+
+const currencyFormatter = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+})
+
+const dateFormatter = new Intl.DateTimeFormat('es-CO', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
+
+const dateTimeFormatter = new Intl.DateTimeFormat('es-CO', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+/**
+ * Los campos `Decimal` de Prisma llegan como string (ej. `"150000.00"`),
+ * por eso se convierten antes de formatear.
+ */
+export function formatCurrency(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '—'
+  const amount = typeof value === 'string' ? Number(value) : value
+  return Number.isNaN(amount) ? '—' : currencyFormatter.format(amount)
+}
+
+export function formatDate(value: string | Date | null | undefined): string {
+  if (!value) return '—'
+  const date = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : dateFormatter.format(date)
+}
+
+export function formatDateTime(value: string | Date | null | undefined): string {
+  if (!value) return '—'
+  const date = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date)
+}
+
+/** Convierte una fecha ISO a `YYYY-MM-DD` para inputs de tipo `date`. */
+export function toDateInputValue(value: string | Date | null | undefined): string {
+  if (!value) return ''
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toISOString().slice(0, 10)
+}
