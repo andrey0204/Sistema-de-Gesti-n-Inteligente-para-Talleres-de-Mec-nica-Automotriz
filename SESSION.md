@@ -23,7 +23,7 @@
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
-| 13 | Frontend: recordatorios de mantenimiento | Completa | (pendiente) |
+| 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
 
 ## Stack Confirmado
 
