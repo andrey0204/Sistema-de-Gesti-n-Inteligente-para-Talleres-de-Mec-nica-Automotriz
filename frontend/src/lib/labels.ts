@@ -59,3 +59,10 @@ export const reminderStatusLabels: Record<ReminderStatus, string> = {
   COMPLETED: 'Completado',
   OVERDUE: 'Vencido',
 }
+
+/** Clase de badge de DaisyUI asociada a cada estado de recordatorio. */
+export const reminderStatusBadges: Record<ReminderStatus, string> = {
+  PENDING: 'badge-warning',
+  COMPLETED: 'badge-success',
+  OVERDUE: 'badge-error',
+}

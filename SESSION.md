@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-08-11  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-11 — Fases 11 y 12: CRUD de vehículos y módulo completo de órdenes de trabajo (estados, asignación, items e imágenes), verificados en el navegador con los tres roles contra la API real. Próximo: recordatorios de mantenimiento.
+**Sesión finalizada:** 2026-08-11 — Fases 11 a 13: CRUD de vehículos, módulo completo de órdenes de trabajo (estados, asignación, items e imágenes) y recordatorios de mantenimiento, verificados en el navegador con los tres roles contra la API real. Próximo: reportes (solo ADMIN).
 
 ---
 
@@ -23,6 +23,7 @@
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
+| 13 | Frontend: recordatorios de mantenimiento | Completa | (pendiente) |
 
 ## Stack Confirmado
 
@@ -54,6 +55,9 @@
 - **Máquina de estados replicada en el frontend** (`lib/work-order-transitions.ts`) solo para decidir qué botones mostrar; la validación real la hace el backend. Si cambian las reglas allí, hay que actualizar esa tabla
 - **Importes**: el backend guarda `Decimal(10,2)` y los devuelve como string. Los formularios los piden **sin separador de miles** (`150000` o `150000.50`) porque en es-CO el punto es separador de miles y «150.000» se interpretaría como 150. `formatCurrency` muestra centavos solo cuando el importe los tiene
 - **La ruta `path` de las imágenes es la del disco del servidor**, no sirve en el navegador: la URL pública se arma con `VITE_UPLOADS_URL` + `filename` desde `api/work-order-images.ts`
+- **Campos «solo fecha» (`scheduledDate`) se guardan a medianoche UTC**: el frontend envía `YYYY-MM-DD` y `z.coerce.date()` lo interpreta como UTC. Formatearlos en la zona local los correría un día atrás en Colombia (UTC-5), así que se usa `formatDateOnly` (formatea en UTC), no `formatDate`. Verificado: `2026-05-15T00:00:00.000Z` se muestra 15/05/2026
+- **El backend nunca marca `OVERDUE` por sí solo**: no hay tarea programada, un recordatorio pendiente cuya fecha ya pasó sigue guardado como `PENDING`. El listado lo resalta en rojo comparando fechas en el cliente; el estado `OVERDUE` solo se asigna a mano desde el formulario de edición
+- **`PATCH /maintenance-reminders/:id` no admite `vehicleId`**: al editar, el vehículo se muestra fijo y solo se cambian descripción, fecha, estado y notas
 
 ## Datos de Prueba en BD
 
@@ -103,10 +107,15 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 Ya funciona: login, sesión persistente, refresh automático de token, layout con menú
 lateral filtrado por rol, panel principal, páginas de 403/404, los **CRUD de clientes
 y de vehículos completos** (listado con búsqueda y paginación, alta/edición en modal,
-baja lógica con confirmación, toasts) y el **módulo de órdenes de trabajo completo**
+baja lógica con confirmación, toasts), el **módulo de órdenes de trabajo completo**
 (listado con filtros por estado y mecánico, alta con selección de cliente y vehículo,
 detalle con máquina de estados, asignación de mecánico, items con total calculado e
-imágenes). Recordatorios, reportes y usuarios siguen mostrando `PlaceholderView`.
+imágenes) y los **recordatorios de mantenimiento** (filtros por estado y vehículo,
+alta/edición, «Completar» en un clic, resaltado de vencidos y borrado solo para ADMIN).
+Reportes y usuarios siguen mostrando `PlaceholderView`.
+
+Recordatorios es de ADMIN y RECEPTIONIST (igual que en el backend), así que el ítem del
+menú, la tarjeta del panel principal y el `meta.roles` de la ruta se filtran por rol.
 
 ### Patrón CRUD a replicar
 
@@ -116,8 +125,10 @@ búsqueda *debounced* de 350 ms, paginación y estado sincronizado con la URL) �
 `<Modulo>FormModal.vue` (crear/editar según reciba `null` o la entidad).
 
 Componentes reutilizables ya disponibles: `BaseModal`, `ConfirmDialog`,
-`PaginationControls`, `ToastHost` + `useToast` y `ClientSelect` (buscador de cliente
-que emite el `id`, usado en vehículos y en las órdenes de trabajo).
+`PaginationControls`, `ToastHost` + `useToast`, `ClientSelect` (buscador de cliente
+que emite el `id`, usado en vehículos y en las órdenes de trabajo) y `VehicleSelect`
+(el equivalente para vehículos, busca por placa/marca/modelo; se usa en el formulario
+y en el filtro de recordatorios).
 
 Las órdenes salen de ese patrón por tener **vista de detalle propia**
 (`/ordenes/:id`), que compone tarjetas independientes: cabecera con transiciones de
@@ -130,10 +141,10 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**Recordatorios de mantenimiento en el frontend** (`/api/maintenance-reminders`):
-listado con filtro por estado y vehículo, alta/edición y marcar como completado.
-Las etiquetas ya están en `lib/labels.ts` (`reminderStatusLabels`).
+**Reportes en el frontend** (`/api/reports`, solo ADMIN): revisar primero qué
+endpoints expone `backend/src/modules/reports/reports.routes.ts` y qué filtros
+aceptan, porque no sigue el patrón CRUD de los módulos anteriores.
 
-Después: reportes (`/api/reports`, solo ADMIN) y el CRUD de usuarios. Pendientes
+Después: el CRUD de usuarios (`/api/users`, solo ADMIN salvo el listado). Pendientes
 transversales: documentar Bitácoras 8 y 9, tests automatizados (Bit. 10), deploy
 (Bit. 11), cierre (Bit. 12).

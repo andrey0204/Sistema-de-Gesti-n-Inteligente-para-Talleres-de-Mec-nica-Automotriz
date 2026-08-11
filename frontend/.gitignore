@@ -25,3 +25,6 @@ dist-ssr
 
 # Variables de entorno locales
 .env
+
+# Capturas y trazas del MCP de Playwright (verificación local)
+.playwright-mcp/

@@ -60,8 +60,8 @@ const router = createRouter({
         {
           path: 'recordatorios',
           name: 'reminders',
-          component: () => import('@/views/PlaceholderView.vue'),
-          meta: { title: 'Recordatorios' },
+          component: () => import('@/views/reminders/RemindersView.vue'),
+          meta: { title: 'Recordatorios', roles: ['ADMIN', 'RECEPTIONIST'] },
         },
         {
           path: 'reportes',

@@ -109,15 +109,15 @@ texto en el formulario y se convierten a número al enviar.
 | `/vehiculos` | Vehículos (CRUD completo) | ADMIN, RECEPTIONIST |
 | `/ordenes` | Órdenes de trabajo (listado con filtros) | Autenticado |
 | `/ordenes/:id` | Detalle: estados, items e imágenes | Autenticado |
-| `/recordatorios` | Recordatorios | Autenticado |
+| `/recordatorios` | Recordatorios de mantenimiento | ADMIN, RECEPTIONIST |
 | `/reportes` | Reportes | ADMIN |
 | `/usuarios` | Usuarios | ADMIN |
 
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
 
-> Los módulos aún no implementados (recordatorios, reportes, usuarios) muestran
-> por ahora una vista `PlaceholderView`.
+> Los módulos aún no implementados (reportes, usuarios) muestran por ahora una
+> vista `PlaceholderView`.
 
 ### Permisos dentro de las órdenes de trabajo
 
@@ -138,6 +138,24 @@ permitiría, para no ofrecer botones que acabarían en un 403:
 Las transiciones de estado permitidas se replican en
 `src/lib/work-order-transitions.ts` para saber qué botones mostrar; la decisión
 real la sigue tomando el backend, que responde 400 si la transición no es válida.
+
+### Recordatorios de mantenimiento
+
+Recepción y administración programan mantenimientos por vehículo; solo ADMIN puede
+eliminarlos, porque en el backend el borrado es físico y no lógico.
+
+Dos detalles del módulo que conviene tener presentes:
+
+- **El backend no marca los vencidos por su cuenta.** No hay tarea programada: un
+  recordatorio cuya fecha ya pasó sigue guardado como `PENDING`. El listado los
+  resalta en rojo comparando la fecha en el cliente, y el estado `OVERDUE` solo se
+  asigna a mano desde el formulario de edición.
+- **La fecha programada es «solo fecha».** Se envía como `YYYY-MM-DD` y el backend
+  la guarda a medianoche UTC, así que se muestra con `formatDateOnly` (formatea en
+  UTC). Con el `formatDate` normal aparecería un día antes en Colombia (UTC-5).
+
+Al editar, el vehículo se muestra fijo: `PATCH /maintenance-reminders/:id` no acepta
+`vehicleId`.
 
 ## Nota sobre Zod
 

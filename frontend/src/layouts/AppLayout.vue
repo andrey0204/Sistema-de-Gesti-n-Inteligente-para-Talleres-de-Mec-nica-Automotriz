@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: 'clients', label: 'Clientes', icon: '👥', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'vehicles', label: 'Vehículos', icon: '🚗', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'work-orders', label: 'Órdenes de trabajo', icon: '🔧' },
-  { name: 'reminders', label: 'Recordatorios', icon: '🔔' },
+  { name: 'reminders', label: 'Recordatorios', icon: '🔔', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'reports', label: 'Reportes', icon: '📊', roles: ['ADMIN'] },
   { name: 'users', label: 'Usuarios', icon: '⚙️', roles: ['ADMIN'] },
 ]

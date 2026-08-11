@@ -32,6 +32,17 @@ const dateTimeFormatter = new Intl.DateTimeFormat('es-CO', {
   minute: '2-digit',
 })
 
+// Los campos «solo fecha» (como `scheduledDate` de los recordatorios) se envían
+// como `YYYY-MM-DD` y el backend los guarda a medianoche UTC. Formatearlos en la
+// zona local los correría un día hacia atrás en Colombia (UTC-5), así que se
+// formatean en UTC para recuperar el día del calendario tal cual se eligió.
+const dateOnlyFormatter = new Intl.DateTimeFormat('es-CO', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+
 /**
  * Los campos `Decimal` de Prisma llegan como string (ej. `"150000.00"`),
  * por eso se convierten antes de formatear.
@@ -63,10 +74,36 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date)
 }
 
-/** Convierte una fecha ISO a `YYYY-MM-DD` para inputs de tipo `date`. */
+/**
+ * Fecha de un campo «solo fecha» (guardado a medianoche UTC), sin hora.
+ * Para marcas de tiempo reales —`createdAt`, `updatedAt`— usa `formatDate`.
+ */
+export function formatDateOnly(value: string | Date | null | undefined): string {
+  if (!value) return '—'
+  const date = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(date.getTime()) ? '—' : dateOnlyFormatter.format(date)
+}
+
+/**
+ * Convierte una fecha ISO a `YYYY-MM-DD` para inputs de tipo `date`.
+ * Usa la fecha UTC, la misma convención con la que se guardan los campos
+ * «solo fecha», de modo que el valor del input coincide con lo mostrado.
+ */
 export function toDateInputValue(value: string | Date | null | undefined): string {
   if (!value) return ''
   const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) return ''
   return date.toISOString().slice(0, 10)
+}
+
+/**
+ * Hoy en formato `YYYY-MM-DD` según el reloj del usuario, para comparar con las
+ * fechas programadas o limitar un input `date`. No se usa `toISOString()`: de
+ * noche en Colombia ya sería el día siguiente en UTC.
+ */
+export function todayInputValue(): string {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${now.getFullYear()}-${month}-${day}`
 }

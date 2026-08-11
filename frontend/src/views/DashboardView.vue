@@ -17,7 +17,7 @@ const SHORTCUTS: Shortcut[] = [
   { name: 'clients', label: 'Clientes', description: 'Registro y búsqueda de clientes', icon: '👥', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'vehicles', label: 'Vehículos', description: 'Vehículos asociados a cada cliente', icon: '🚗', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'work-orders', label: 'Órdenes de trabajo', description: 'Seguimiento de reparaciones', icon: '🔧' },
-  { name: 'reminders', label: 'Recordatorios', description: 'Mantenimientos programados', icon: '🔔' },
+  { name: 'reminders', label: 'Recordatorios', description: 'Mantenimientos programados', icon: '🔔', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'reports', label: 'Reportes', description: 'Indicadores del taller', icon: '📊', roles: ['ADMIN'] },
 ]
 
