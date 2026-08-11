@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-08-11  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-11 — CRUD de vehículos en el frontend (Fase 11), verificado en el navegador contra la API real. Próximo: órdenes de trabajo.
+**Sesión finalizada:** 2026-08-11 — Fases 11 y 12: CRUD de vehículos y módulo completo de órdenes de trabajo (estados, asignación, items e imágenes), verificados en el navegador con los tres roles contra la API real. Próximo: recordatorios de mantenimiento.
 
 ---
 
@@ -22,7 +22,7 @@
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
-| 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | (pendiente de anotar) |
+| 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
 
 ## Stack Confirmado
 
