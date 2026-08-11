@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-08-10  
+**Última actualización:** 2026-08-11  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-10 — Setup del frontend (Fase 9): proyecto Vite + Vue 3 + TS, Tailwind 4 + DaisyUI 5, Pinia, Vue Router con guards por rol, cliente Axios con refresh automático de token y pantalla de login funcional. Próximo: CRUD de clientes.
+**Sesión finalizada:** 2026-08-11 — CRUD de vehículos en el frontend (Fase 11), verificado en el navegador contra la API real. Próximo: órdenes de trabajo.
 
 ---
 
@@ -21,7 +21,7 @@
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
-| 11 | Frontend: CRUD de vehículos | Completa | (pendiente de anotar) |
+| 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
 
 ## Stack Confirmado
 
