@@ -84,10 +84,10 @@ El servidor inicia en `http://localhost:3000`.
 | POST | `/api/auth/refresh` | Renovar tokens |
 | POST | `/api/auth/logout` | Cerrar sesion |
 
-### Users (admin only)
+### Users (admin only, salvo el listado)
 | Metodo | Ruta | Descripcion |
 |--------|------|-------------|
-| GET | `/api/users` | Listar usuarios |
+| GET | `/api/users` | Listar usuarios (ADMIN y RECEPTIONIST: recepcion necesita elegir mecanico al asignar una orden) |
 | POST | `/api/users` | Crear usuario |
 | GET | `/api/users/:id` | Obtener usuario |
 | PATCH | `/api/users/:id` | Actualizar usuario |

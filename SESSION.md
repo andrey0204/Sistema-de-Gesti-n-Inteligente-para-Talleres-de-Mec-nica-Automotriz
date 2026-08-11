@@ -22,6 +22,7 @@
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
+| 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | (pendiente de anotar) |
 
 ## Stack Confirmado
 
@@ -49,6 +50,10 @@
 - **Sin enums de TypeScript en el frontend**: el tsconfig de Vite usa `erasableSyntaxOnly`; los enums se declaran como objetos `const` + tipo unión en `frontend/src/types/models.ts`
 - **Campos `Decimal` llegan como string** en el JSON de Prisma (ej. `"150000.00"`); se convierten en `frontend/src/lib/format.ts`
 - **Sesión en `localStorage`** gestionada desde `frontend/src/lib/token-storage.ts` (módulo aparte del store para evitar dependencia circular con el cliente Axios)
+- **`GET /api/users` abierto a RECEPTIONIST** (Fase 12): recepción puede asignar mecánico a una orden, así que necesita listarlos. El resto de endpoints de `/users` sigue siendo solo de ADMIN
+- **Máquina de estados replicada en el frontend** (`lib/work-order-transitions.ts`) solo para decidir qué botones mostrar; la validación real la hace el backend. Si cambian las reglas allí, hay que actualizar esa tabla
+- **Importes**: el backend guarda `Decimal(10,2)` y los devuelve como string. Los formularios los piden **sin separador de miles** (`150000` o `150000.50`) porque en es-CO el punto es separador de miles y «150.000» se interpretaría como 150. `formatCurrency` muestra centavos solo cuando el importe los tiene
+- **La ruta `path` de las imágenes es la del disco del servidor**, no sirve en el navegador: la URL pública se arma con `VITE_UPLOADS_URL` + `filename` desde `api/work-order-images.ts`
 
 ## Datos de Prueba en BD
 
@@ -96,10 +101,12 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 ## Estado del Frontend
 
 Ya funciona: login, sesión persistente, refresh automático de token, layout con menú
-lateral filtrado por rol, panel principal, páginas de 403/404 y los **CRUD de clientes
+lateral filtrado por rol, panel principal, páginas de 403/404, los **CRUD de clientes
 y de vehículos completos** (listado con búsqueda y paginación, alta/edición en modal,
-baja lógica con confirmación, toasts). Órdenes, recordatorios, reportes y usuarios
-siguen mostrando `PlaceholderView`.
+baja lógica con confirmación, toasts) y el **módulo de órdenes de trabajo completo**
+(listado con filtros por estado y mecánico, alta con selección de cliente y vehículo,
+detalle con máquina de estados, asignación de mecánico, items con total calculado e
+imágenes). Recordatorios, reportes y usuarios siguen mostrando `PlaceholderView`.
 
 ### Patrón CRUD a replicar
 
@@ -110,7 +117,12 @@ búsqueda *debounced* de 350 ms, paginación y estado sincronizado con la URL) �
 
 Componentes reutilizables ya disponibles: `BaseModal`, `ConfirmDialog`,
 `PaginationControls`, `ToastHost` + `useToast` y `ClientSelect` (buscador de cliente
-que emite el `id`; se reutilizará en las órdenes de trabajo).
+que emite el `id`, usado en vehículos y en las órdenes de trabajo).
+
+Las órdenes salen de ese patrón por tener **vista de detalle propia**
+(`/ordenes/:id`), que compone tarjetas independientes: cabecera con transiciones de
+estado, formulario de diagnóstico y costos, `WorkOrderItems` y `WorkOrderImages`
+(cada uno carga y recarga sus propios datos).
 
 **Detalle del contrato del backend:** al *crear*, los campos opcionales no aceptan
 cadena vacía (hay que omitirlos del payload); al *editar* sí aceptan `null`, que es
@@ -118,12 +130,10 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**Órdenes de trabajo en el frontend**, el módulo más grande:
-- `src/api/work-orders.ts` sobre `/api/work-orders`
-- Selección de cliente (reutilizar `ClientSelect`) y de vehículo del cliente
-- Vista de detalle con la *state machine* de estados, items (servicios/repuestos)
-  e imágenes; `workOrderStatusLabels` y `workOrderStatusBadges` ya están en
-  `lib/labels.ts`
+**Recordatorios de mantenimiento en el frontend** (`/api/maintenance-reminders`):
+listado con filtro por estado y vehículo, alta/edición y marcar como completado.
+Las etiquetas ya están en `lib/labels.ts` (`reminderStatusLabels`).
 
-Pendientes posteriores: recordatorios y reportes, documentar Bitácoras 8 y 9,
-tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).
+Después: reportes (`/api/reports`, solo ADMIN) y el CRUD de usuarios. Pendientes
+transversales: documentar Bitácoras 8 y 9, tests automatizados (Bit. 10), deploy
+(Bit. 11), cierre (Bit. 12).

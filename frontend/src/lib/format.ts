@@ -1,9 +1,19 @@
 /** Formateadores para mostrar datos de la API en la interfaz. */
 
+// En pesos los importes suelen ser enteros, pero el backend guarda Decimal(10,2):
+// se muestran los centavos solo cuando el importe realmente los tiene, para no
+// redondear un precio guardado (60000.50 no debe verse como $ 60.001).
 const currencyFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
   currency: 'COP',
   maximumFractionDigits: 0,
+})
+
+const currencyWithCentsFormatter = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 })
 
 const numberFormatter = new Intl.NumberFormat('es-CO')
@@ -29,7 +39,10 @@ const dateTimeFormatter = new Intl.DateTimeFormat('es-CO', {
 export function formatCurrency(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === '') return '—'
   const amount = typeof value === 'string' ? Number(value) : value
-  return Number.isNaN(amount) ? '—' : currencyFormatter.format(amount)
+  if (Number.isNaN(amount)) return '—'
+  return Number.isInteger(amount)
+    ? currencyFormatter.format(amount)
+    : currencyWithCentsFormatter.format(amount)
 }
 
 /** Separadores de miles para cantidades enteras (kilometraje, unidades…). */

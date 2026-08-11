@@ -12,10 +12,20 @@ import {
 
 const router = Router();
 
-// All routes require authentication + admin role
-router.use(authenticate, authorize('ADMIN'));
+router.use(authenticate);
 
-router.get('/', validate({ query: listUsersQuerySchema }), usersController.list);
+// Receptionists may assign a mechanic to a work order, so they need to read the
+// user list to pick one. The list never exposes passwords (see users.repository).
+router.get(
+  '/',
+  authorize('ADMIN', 'RECEPTIONIST'),
+  validate({ query: listUsersQuerySchema }),
+  usersController.list,
+);
+
+// Everything else remains admin-only
+router.use(authorize('ADMIN'));
+
 router.get('/:id', validate({ params: userIdParamSchema }), usersController.getById);
 router.post('/', validate({ body: createUserSchema }), usersController.create);
 router.patch('/:id', validate({ params: userIdParamSchema, body: updateUserSchema }), usersController.update);

@@ -48,8 +48,14 @@ const router = createRouter({
         {
           path: 'ordenes',
           name: 'work-orders',
-          component: () => import('@/views/PlaceholderView.vue'),
+          component: () => import('@/views/work-orders/WorkOrdersView.vue'),
           meta: { title: 'Órdenes de trabajo' },
+        },
+        {
+          path: 'ordenes/:id',
+          name: 'work-orders-detail',
+          component: () => import('@/views/work-orders/WorkOrderDetailView.vue'),
+          meta: { title: 'Detalle de la orden' },
         },
         {
           path: 'recordatorios',

@@ -360,7 +360,8 @@ export const swaggerDocument = {
       get: {
         tags: ['Users'],
         summary: 'List users',
-        description: 'Get a paginated list of users with optional search and role filter',
+        description:
+          'Get a paginated list of users with optional search and role filter. Allowed for ADMIN and RECEPTIONIST (receptionists need it to pick a mechanic when assigning a work order); every other user endpoint is admin-only.',
         parameters: [
           { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
           { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },

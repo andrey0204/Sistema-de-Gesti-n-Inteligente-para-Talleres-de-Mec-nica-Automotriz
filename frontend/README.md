@@ -107,7 +107,8 @@ texto en el formulario y se convierten a número al enviar.
 | `/` | Panel principal | Autenticado |
 | `/clientes` | Clientes (CRUD completo) | ADMIN, RECEPTIONIST |
 | `/vehiculos` | Vehículos (CRUD completo) | ADMIN, RECEPTIONIST |
-| `/ordenes` | Órdenes de trabajo | Autenticado |
+| `/ordenes` | Órdenes de trabajo (listado con filtros) | Autenticado |
+| `/ordenes/:id` | Detalle: estados, items e imágenes | Autenticado |
 | `/recordatorios` | Recordatorios | Autenticado |
 | `/reportes` | Reportes | ADMIN |
 | `/usuarios` | Usuarios | ADMIN |
@@ -115,8 +116,28 @@ texto en el formulario y se convierten a número al enviar.
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
 
-> Los módulos aún no implementados (órdenes, recordatorios, reportes, usuarios)
-> muestran por ahora una vista `PlaceholderView`.
+> Los módulos aún no implementados (recordatorios, reportes, usuarios) muestran
+> por ahora una vista `PlaceholderView`.
+
+### Permisos dentro de las órdenes de trabajo
+
+Además del guard por ruta, el detalle de una orden oculta lo que el backend no
+permitiría, para no ofrecer botones que acabarían en un 403:
+
+| Acción | Roles |
+|--------|-------|
+| Crear una orden | ADMIN, RECEPTIONIST |
+| Ver el detalle | Todos (el mecánico, solo sus órdenes asignadas) |
+| Editar diagnóstico, costos y observaciones | Todos los que puedan ver la orden |
+| Cambiar de estado | Todos; solo ADMIN puede retroceder un estado |
+| Asignar mecánico | ADMIN, RECEPTIONIST |
+| Servicios y repuestos (items) | ADMIN, MECHANIC |
+| Subir imágenes | Todos |
+| Borrar imágenes | ADMIN |
+
+Las transiciones de estado permitidas se replican en
+`src/lib/work-order-transitions.ts` para saber qué botones mostrar; la decisión
+real la sigue tomando el backend, que responde 400 si la transición no es válida.
 
 ## Nota sobre Zod
 

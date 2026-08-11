@@ -30,6 +30,15 @@ const router = useRouter()
 const drawerOpen = ref(false)
 
 const navItems = computed(() => NAV_ITEMS.filter((item) => !item.roles || auth.hasRole(...item.roles)))
+
+/**
+ * Marca activa la sección también en sus rutas hijas: el detalle de una orden
+ * se llama `work-orders-detail`, así que basta con comparar el prefijo.
+ */
+function isActive(name: string): boolean {
+  const current = String(route.name ?? '')
+  return current === name || current.startsWith(`${name}-`)
+}
 const pageTitle = computed(() => route.meta.title ?? 'Taller')
 const initials = computed(() =>
   (auth.user?.fullName ?? '?')
@@ -105,7 +114,7 @@ async function handleLogout(): Promise<void> {
           <li v-for="item in navItems" :key="item.name">
             <RouterLink
               :to="{ name: item.name }"
-              :class="{ 'menu-active': route.name === item.name }"
+              :class="{ 'menu-active': isActive(item.name) }"
               @click="drawerOpen = false"
             >
               <span>{{ item.icon }}</span>
