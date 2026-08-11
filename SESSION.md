@@ -21,6 +21,7 @@
 | 8 | Documentación final (OpenAPI, Postman, README) | Completa | `859458e` |
 | 9 | Frontend: setup, auth, layout y guards | Completa | `8be3ff1` |
 | 10 | Frontend: CRUD de clientes | Completa | `46de743` |
+| 11 | Frontend: CRUD de vehículos | Completa | (pendiente de anotar) |
 
 ## Stack Confirmado
 
@@ -95,10 +96,10 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 ## Estado del Frontend
 
 Ya funciona: login, sesión persistente, refresh automático de token, layout con menú
-lateral filtrado por rol, panel principal, páginas de 403/404 y el **CRUD de clientes
-completo** (listado con búsqueda y paginación, alta/edición en modal, baja lógica con
-confirmación, toasts). Vehículos, órdenes, recordatorios, reportes y usuarios siguen
-mostrando `PlaceholderView`.
+lateral filtrado por rol, panel principal, páginas de 403/404 y los **CRUD de clientes
+y de vehículos completos** (listado con búsqueda y paginación, alta/edición en modal,
+baja lógica con confirmación, toasts). Órdenes, recordatorios, reportes y usuarios
+siguen mostrando `PlaceholderView`.
 
 ### Patrón CRUD a replicar
 
@@ -108,7 +109,8 @@ búsqueda *debounced* de 350 ms, paginación y estado sincronizado con la URL) �
 `<Modulo>FormModal.vue` (crear/editar según reciba `null` o la entidad).
 
 Componentes reutilizables ya disponibles: `BaseModal`, `ConfirmDialog`,
-`PaginationControls`, `ToastHost` + `useToast`.
+`PaginationControls`, `ToastHost` + `useToast` y `ClientSelect` (buscador de cliente
+que emite el `id`; se reutilizará en las órdenes de trabajo).
 
 **Detalle del contrato del backend:** al *crear*, los campos opcionales no aceptan
 cadena vacía (hay que omitirlos del payload); al *editar* sí aceptan `null`, que es
@@ -116,11 +118,12 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**CRUD de vehículos en el frontend**, replicando el patrón de clientes:
-- `src/api/vehicles.ts` sobre `/api/vehicles`
-- Selector de cliente en el formulario (relación `clientId`, obligatoria)
-- Campos propios: placa, marca, modelo, año, color, VIN, tipo de combustible,
-  kilometraje — ya hay etiquetas en español en `lib/labels.ts` (`fuelTypeLabels`)
+**Órdenes de trabajo en el frontend**, el módulo más grande:
+- `src/api/work-orders.ts` sobre `/api/work-orders`
+- Selección de cliente (reutilizar `ClientSelect`) y de vehículo del cliente
+- Vista de detalle con la *state machine* de estados, items (servicios/repuestos)
+  e imágenes; `workOrderStatusLabels` y `workOrderStatusBadges` ya están en
+  `lib/labels.ts`
 
-Pendientes posteriores: órdenes de trabajo, recordatorios y reportes, documentar
-Bitácoras 8 y 9, tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).
+Pendientes posteriores: recordatorios y reportes, documentar Bitácoras 8 y 9,
+tests automatizados (Bit. 10), deploy (Bit. 11), cierre (Bit. 12).

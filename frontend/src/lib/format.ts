@@ -6,6 +6,8 @@ const currencyFormatter = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 })
 
+const numberFormatter = new Intl.NumberFormat('es-CO')
+
 const dateFormatter = new Intl.DateTimeFormat('es-CO', {
   day: '2-digit',
   month: '2-digit',
@@ -28,6 +30,12 @@ export function formatCurrency(value: string | number | null | undefined): strin
   if (value === null || value === undefined || value === '') return '—'
   const amount = typeof value === 'string' ? Number(value) : value
   return Number.isNaN(amount) ? '—' : currencyFormatter.format(amount)
+}
+
+/** Separadores de miles para cantidades enteras (kilometraje, unidades…). */
+export function formatNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—'
+  return numberFormatter.format(value)
 }
 
 export function formatDate(value: string | Date | null | undefined): string {

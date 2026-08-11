@@ -102,7 +102,7 @@ export interface Vehicle {
   createdAt: string
   updatedAt: string
   deletedAt: string | null
-  client?: Pick<Client, 'id' | 'fullName' | 'phone' | 'documentNumber'>
+  client?: Pick<Client, 'id' | 'fullName' | 'phone'>
 }
 
 export interface WorkOrder {

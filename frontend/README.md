@@ -83,6 +83,11 @@ Detalle a tener en cuenta al crear frente a editar: en **creación** el backend
 rechaza la cadena vacía en los campos opcionales, así que se omiten del payload;
 en **edición** sí acepta `null`, que es como se limpian.
 
+Cuando el formulario necesita apuntar a otra entidad (vehículos → cliente), se usa
+`components/ClientSelect.vue`: un buscador que consulta `/clients?search=` y emite
+el `id` elegido. Los campos numéricos opcionales (año, kilometraje) se manejan como
+texto en el formulario y se convierten a número al enviar.
+
 ## Autenticación
 
 - `POST /auth/login` devuelve `accessToken` (15 min), `refreshToken` (7 días) y el usuario.
@@ -101,7 +106,7 @@ en **edición** sí acepta `null`, que es como se limpian.
 | `/login` | Inicio de sesión | Pública |
 | `/` | Panel principal | Autenticado |
 | `/clientes` | Clientes (CRUD completo) | ADMIN, RECEPTIONIST |
-| `/vehiculos` | Vehículos | ADMIN, RECEPTIONIST |
+| `/vehiculos` | Vehículos (CRUD completo) | ADMIN, RECEPTIONIST |
 | `/ordenes` | Órdenes de trabajo | Autenticado |
 | `/recordatorios` | Recordatorios | Autenticado |
 | `/reportes` | Reportes | ADMIN |
@@ -110,8 +115,8 @@ en **edición** sí acepta `null`, que es como se limpian.
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
 
-> Los módulos aún no implementados (vehículos, órdenes, recordatorios, reportes,
-> usuarios) muestran por ahora una vista `PlaceholderView`.
+> Los módulos aún no implementados (órdenes, recordatorios, reportes, usuarios)
+> muestran por ahora una vista `PlaceholderView`.
 
 ## Nota sobre Zod
 

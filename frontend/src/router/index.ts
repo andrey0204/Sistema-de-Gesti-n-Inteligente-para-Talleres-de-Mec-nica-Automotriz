@@ -42,7 +42,7 @@ const router = createRouter({
         {
           path: 'vehiculos',
           name: 'vehicles',
-          component: () => import('@/views/PlaceholderView.vue'),
+          component: () => import('@/views/vehicles/VehiclesView.vue'),
           meta: { title: 'Vehículos', roles: ['ADMIN', 'RECEPTIONIST'] },
         },
         {
