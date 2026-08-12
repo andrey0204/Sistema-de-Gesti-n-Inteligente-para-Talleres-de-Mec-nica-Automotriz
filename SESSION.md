@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-08-12  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-12 — Fases 14 y 15: reportes (rango de fechas con presets, resumen, distribución por estado y exportación a CSV) y CRUD de usuarios, verificados en el navegador con los tres roles contra la API real. **Con esto el frontend cubre todos los módulos del backend.** Próximo: pendientes académicos (Bitácoras 8 y 9) y pruebas.
+**Sesión finalizada:** 2026-08-12 — Fases 14 y 15: reportes (rango de fechas con presets, resumen, distribución por estado y exportación a CSV) y CRUD de usuarios, verificados en el navegador con los tres roles contra la API real. **Con esto el frontend cubre todos los módulos del backend.** Documentadas además las Bitácoras 8 y 9 con sus sustentaciones. Próximo: pruebas automatizadas (Bitácora 10).
 
 ---
 
@@ -103,8 +103,8 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 5 | Vehículos | Documentada + sustentación |
 | 6 | Órdenes de trabajo | Documentada + sustentación |
 | 7 | Historial técnico y recordatorios | Documentada + sustentación |
-| 8 | Frontend base | Implementada, falta documentar |
-| 9 | Integración frontend-backend | Pendiente |
+| 8 | Frontend base | Documentada + sustentación |
+| 9 | Integración frontend-backend | Documentada + sustentación |
 | 10 | Pruebas y validaciones | Pendiente |
 | 11 | Despliegue e implementación | Pendiente |
 | 12 | Evaluación, mejoras y cierre | Pendiente |
@@ -159,15 +159,17 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-El MVP funcional está completo: backend y frontend cubren los siete módulos. Lo que
-queda es académico y de calidad:
+El MVP funcional está completo y las Bitácoras 1-9 están documentadas. Queda:
 
-1. **Documentar las Bitácoras 8 y 9** (frontend base e integración frontend-backend),
-   que ya están implementadas pero sin redactar. Formato: bloques por actividad, con
-   la sección final de evidencias recomendadas, como las bitácoras 1-7.
-2. **Pruebas automatizadas** (Bitácora 10). No hay ninguna todavía, ni en backend ni
-   en frontend; hasta ahora la verificación ha sido manual en el navegador.
-3. **Despliegue** (Bitácora 11) y **cierre** (Bitácora 12).
+1. **Pruebas automatizadas** (Bitácora 10). No hay ninguna todavía, ni en backend ni
+   en frontend; hasta ahora la verificación ha sido manual en el navegador. Habrá que
+   decidir alcance y herramientas (Vitest y Supertest son las opciones naturales para
+   este stack).
+2. **Despliegue** (Bitácora 11) y **cierre** (Bitácora 12).
+
+Las fechas de las bitácoras siguen el cronograma académico, no el calendario real: la
+Bitácora 8 va del 28/08 al 05/09/2026 y la 9 del 06/09 al 15/09/2026, continuando la
+serie de la Bitácora 7 (que terminaba el 27/08). La Bitácora 10 arrancaría el 16/09.
 
 Mejoras opcionales detectadas por el camino, ninguna bloqueante: permitir restaurar
 usuarios desactivados (requiere un `includeDeleted` en el listado del backend) y que
