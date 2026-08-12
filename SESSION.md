@@ -25,7 +25,7 @@
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
 | 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
 | 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `981c309` |
-| 15 | Frontend: CRUD de usuarios | Completa | `pendiente` |
+| 15 | Frontend: CRUD de usuarios | Completa | `229dfa8` |
 
 ## Stack Confirmado
 
