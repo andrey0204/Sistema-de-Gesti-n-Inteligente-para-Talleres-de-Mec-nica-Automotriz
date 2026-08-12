@@ -97,13 +97,20 @@ export function toDateInputValue(value: string | Date | null | undefined): strin
 }
 
 /**
- * Hoy en formato `YYYY-MM-DD` según el reloj del usuario, para comparar con las
- * fechas programadas o limitar un input `date`. No se usa `toISOString()`: de
- * noche en Colombia ya sería el día siguiente en UTC.
+ * `YYYY-MM-DD` del día que marca el reloj del usuario. No se usa
+ * `toISOString()`: de noche en Colombia ya sería el día siguiente en UTC.
+ *
+ * Es la contraparte local de `toDateInputValue`, que trabaja en UTC porque los
+ * campos «solo fecha» del backend se guardan a medianoche UTC. Este se usa para
+ * fechas del calendario real del usuario (hoy, rangos de un reporte).
  */
+export function toLocalDateInputValue(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+/** Hoy en `YYYY-MM-DD`, para comparar fechas programadas o limitar un input `date`. */
 export function todayInputValue(): string {
-  const now = new Date()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${now.getFullYear()}-${month}-${day}`
+  return toLocalDateInputValue(new Date())
 }

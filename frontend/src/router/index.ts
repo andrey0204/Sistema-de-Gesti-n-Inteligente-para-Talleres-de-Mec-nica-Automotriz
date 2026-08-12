@@ -66,8 +66,8 @@ const router = createRouter({
         {
           path: 'reportes',
           name: 'reports',
-          component: () => import('@/views/PlaceholderView.vue'),
-          meta: { title: 'Reportes', roles: ['ADMIN'] },
+          component: () => import('@/views/reports/ReportsView.vue'),
+          meta: { title: 'Reportes', roles: ['ADMIN', 'RECEPTIONIST'] },
         },
         {
           path: 'usuarios',

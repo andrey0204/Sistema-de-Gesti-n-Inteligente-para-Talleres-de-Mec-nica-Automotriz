@@ -18,7 +18,7 @@ const SHORTCUTS: Shortcut[] = [
   { name: 'vehicles', label: 'Vehículos', description: 'Vehículos asociados a cada cliente', icon: '🚗', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'work-orders', label: 'Órdenes de trabajo', description: 'Seguimiento de reparaciones', icon: '🔧' },
   { name: 'reminders', label: 'Recordatorios', description: 'Mantenimientos programados', icon: '🔔', roles: ['ADMIN', 'RECEPTIONIST'] },
-  { name: 'reports', label: 'Reportes', description: 'Indicadores del taller', icon: '📊', roles: ['ADMIN'] },
+  { name: 'reports', label: 'Reportes', description: 'Indicadores del taller', icon: '📊', roles: ['ADMIN', 'RECEPTIONIST'] },
 ]
 
 const auth = useAuthStore()

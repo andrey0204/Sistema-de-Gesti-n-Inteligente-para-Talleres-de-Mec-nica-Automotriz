@@ -49,6 +49,16 @@ export const workOrderStatusBadges: Record<WorkOrderStatus, string> = {
   CANCELLED: 'badge-error',
 }
 
+/** Misma paleta que los badges, para las barras de la distribución por estado. */
+export const workOrderStatusProgress: Record<WorkOrderStatus, string> = {
+  PENDING: 'progress-neutral',
+  DIAGNOSED: 'progress-info',
+  IN_PROGRESS: 'progress-warning',
+  COMPLETED: 'progress-success',
+  DELIVERED: 'progress-primary',
+  CANCELLED: 'progress-error',
+}
+
 export const workOrderItemTypeLabels: Record<WorkOrderItemType, string> = {
   SERVICE: 'Servicio',
   PART: 'Repuesto',

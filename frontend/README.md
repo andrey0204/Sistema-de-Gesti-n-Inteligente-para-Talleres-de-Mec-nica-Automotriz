@@ -110,14 +110,14 @@ texto en el formulario y se convierten a número al enviar.
 | `/ordenes` | Órdenes de trabajo (listado con filtros) | Autenticado |
 | `/ordenes/:id` | Detalle: estados, items e imágenes | Autenticado |
 | `/recordatorios` | Recordatorios de mantenimiento | ADMIN, RECEPTIONIST |
-| `/reportes` | Reportes | ADMIN |
+| `/reportes` | Reportes del taller | ADMIN, RECEPTIONIST |
 | `/usuarios` | Usuarios | ADMIN |
 
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
 
-> Los módulos aún no implementados (reportes, usuarios) muestran por ahora una
-> vista `PlaceholderView`.
+> El módulo de usuarios, aún sin implementar, muestra por ahora una vista
+> `PlaceholderView`.
 
 ### Permisos dentro de las órdenes de trabajo
 
@@ -156,6 +156,28 @@ Dos detalles del módulo que conviene tener presentes:
 
 Al editar, el vehículo se muestra fijo: `PATCH /maintenance-reminders/:id` no acepta
 `vehicleId`.
+
+### Reportes
+
+Una sola pantalla reúne los cuatro endpoints de `/api/reports`: un rango de fechas
+(con presets de mes, últimos 30 días, mes pasado y año) alimenta el resumen del
+periodo y las tres pestañas —órdenes, vehículos y clientes atendidos—, cada una con
+su exportación a CSV. La distribución por estado va aparte, en su propia tarjeta.
+
+Tres detalles del módulo:
+
+- **El rango se envía como instante ISO, no como `YYYY-MM-DD`.** Los reportes filtran
+  `createdAt`, que es una marca de tiempo real, y `z.coerce.date()` interpretaría
+  `2026-08-04` como medianoche **UTC**, dejando fuera casi todo ese día. `api/reports.ts`
+  convierte el rango al inicio y el fin reales del día local antes de consultar.
+- **`orders-by-status` no acepta rango.** Es un histórico completo, y la tarjeta lo
+  advierte para que no se confunda con las cifras del periodo.
+- **Ningún reporte pagina.** Devuelven la lista entera, así que la paginación se hace
+  en memoria con `composables/useClientPagination.ts`, que arma el mismo `meta` que
+  envía el backend para poder reutilizar `PaginationControls`.
+
+Los CSV usan `;` como separador y llevan BOM UTF-8: en es-CO la coma es el separador
+decimal y, sin BOM, Excel rompe las tildes.
 
 ## Nota sobre Zod
 

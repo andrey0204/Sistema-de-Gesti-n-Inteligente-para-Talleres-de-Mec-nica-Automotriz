@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-08-11  
+**Última actualización:** 2026-08-12  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-11 — Fases 11 a 13: CRUD de vehículos, módulo completo de órdenes de trabajo (estados, asignación, items e imágenes) y recordatorios de mantenimiento, verificados en el navegador con los tres roles contra la API real. Próximo: reportes (solo ADMIN).
+**Sesión finalizada:** 2026-08-12 — Fase 14: reportes en el frontend (rango de fechas con presets, tarjetas de resumen, distribución por estado, tres listados paginados en cliente y exportación a CSV), verificado en el navegador con los tres roles contra la API real. Próximo: CRUD de usuarios.
 
 ---
 
@@ -24,6 +24,7 @@
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
 | 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
+| 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `pendiente` |
 
 ## Stack Confirmado
 
@@ -58,6 +59,11 @@
 - **Campos «solo fecha» (`scheduledDate`) se guardan a medianoche UTC**: el frontend envía `YYYY-MM-DD` y `z.coerce.date()` lo interpreta como UTC. Formatearlos en la zona local los correría un día atrás en Colombia (UTC-5), así que se usa `formatDateOnly` (formatea en UTC), no `formatDate`. Verificado: `2026-05-15T00:00:00.000Z` se muestra 15/05/2026
 - **El backend nunca marca `OVERDUE` por sí solo**: no hay tarea programada, un recordatorio pendiente cuya fecha ya pasó sigue guardado como `PENDING`. El listado lo resalta en rojo comparando fechas en el cliente; el estado `OVERDUE` solo se asigna a mano desde el formulario de edición
 - **`PATCH /maintenance-reminders/:id` no admite `vehicleId`**: al editar, el vehículo se muestra fijo y solo se cambian descripción, fecha, estado y notas
+- **Reportes son de ADMIN y RECEPTIONIST**, no solo de ADMIN (`reports.routes.ts` aplica `authorize('ADMIN','RECEPTIONIST')`). El roadmap decía «solo ADMIN»; se corrigió el frontend para que coincida con el backend. Verificado: MECHANIC recibe 403
+- **El rango de los reportes se envía como instante ISO, no como `YYYY-MM-DD`**: los endpoints filtran `createdAt` (marca de tiempo real) con `gte`/`lte` y `z.coerce.date()` convertiría `2026-08-04` en medianoche **UTC**, dejando fuera casi todo ese día. `api/reports.ts` manda el inicio y el fin reales del día local. Comprobado contra la API: el rango 01→04 de agosto devuelve 0 órdenes en el formato naive y 1 con la conversión
+- **`/reports/orders-by-status` no acepta rango**: es un histórico completo. La tarjeta lo dice explícitamente para que no se lea como parte del periodo
+- **Los reportes no paginan**: devuelven el listado entero, así que la paginación es en memoria (`composables/useClientPagination.ts`), que fabrica el mismo `meta` que el backend para poder reusar `PaginationControls`
+- **CSV con `;` y BOM UTF-8** (`lib/csv.ts`): en es-CO la coma es el separador decimal, y sin BOM Excel rompe las tildes. Los importes se exportan con coma decimal para que la hoja los sume
 
 ## Datos de Prueba en BD
 
@@ -111,11 +117,14 @@ baja lógica con confirmación, toasts), el **módulo de órdenes de trabajo com
 (listado con filtros por estado y mecánico, alta con selección de cliente y vehículo,
 detalle con máquina de estados, asignación de mecánico, items con total calculado e
 imágenes) y los **recordatorios de mantenimiento** (filtros por estado y vehículo,
-alta/edición, «Completar» en un clic, resaltado de vencidos y borrado solo para ADMIN).
-Reportes y usuarios siguen mostrando `PlaceholderView`.
+alta/edición, «Completar» en un clic, resaltado de vencidos y borrado solo para ADMIN) y
+los **reportes** (rango de fechas con presets, resumen del periodo, distribución
+histórica por estado, listados de órdenes/vehículos/clientes y exportación a CSV).
+Solo usuarios sigue mostrando `PlaceholderView`.
 
-Recordatorios es de ADMIN y RECEPTIONIST (igual que en el backend), así que el ítem del
-menú, la tarjeta del panel principal y el `meta.roles` de la ruta se filtran por rol.
+Recordatorios y reportes son de ADMIN y RECEPTIONIST (igual que en el backend), así que
+el ítem del menú, la tarjeta del panel principal y el `meta.roles` de la ruta se filtran
+por rol.
 
 ### Patrón CRUD a replicar
 
@@ -141,10 +150,10 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**Reportes en el frontend** (`/api/reports`, solo ADMIN): revisar primero qué
-endpoints expone `backend/src/modules/reports/reports.routes.ts` y qué filtros
-aceptan, porque no sigue el patrón CRUD de los módulos anteriores.
+**CRUD de usuarios en el frontend** (`/api/users`, solo ADMIN salvo el listado, que ya
+está abierto a RECEPTIONIST). Sigue el patrón CRUD de `src/views/clients/`, con dos
+particularidades a revisar en el backend: la contraseña solo se envía al crear y el
+borrado es lógico (`deletedAt`), como en clientes y vehículos.
 
-Después: el CRUD de usuarios (`/api/users`, solo ADMIN salvo el listado). Pendientes
-transversales: documentar Bitácoras 8 y 9, tests automatizados (Bit. 10), deploy
-(Bit. 11), cierre (Bit. 12).
+Pendientes transversales: documentar Bitácoras 8 y 9, tests automatizados (Bit. 10),
+deploy (Bit. 11), cierre (Bit. 12).
