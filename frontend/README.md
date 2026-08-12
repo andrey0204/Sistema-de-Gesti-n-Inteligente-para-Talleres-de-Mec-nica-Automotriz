@@ -111,13 +111,10 @@ texto en el formulario y se convierten a número al enviar.
 | `/ordenes/:id` | Detalle: estados, items e imágenes | Autenticado |
 | `/recordatorios` | Recordatorios de mantenimiento | ADMIN, RECEPTIONIST |
 | `/reportes` | Reportes del taller | ADMIN, RECEPTIONIST |
-| `/usuarios` | Usuarios | ADMIN |
+| `/usuarios` | Usuarios (CRUD completo) | ADMIN |
 
 Los permisos se declaran en el `meta.roles` de cada ruta y los revisa el guard
 global de `router/index.ts`. El menú lateral oculta las secciones sin permiso.
-
-> El módulo de usuarios, aún sin implementar, muestra por ahora una vista
-> `PlaceholderView`.
 
 ### Permisos dentro de las órdenes de trabajo
 
@@ -178,6 +175,27 @@ Tres detalles del módulo:
 
 Los CSV usan `;` como separador y llevan BOM UTF-8: en es-CO la coma es el separador
 decimal y, sin BOM, Excel rompe las tildes.
+
+### Usuarios
+
+Sección de administración: listado con búsqueda y filtro por rol, alta, edición y
+baja lógica. La ruta es solo de ADMIN aunque el backend deje listar usuarios también
+a RECEPTIONIST, porque esa apertura existe para poder asignar un mecánico a una orden,
+no para administrar cuentas.
+
+- **La contraseña solo se envía cuando cambia.** Es obligatoria al crear (mínimo 8
+  caracteres) y opcional al editar: el campo vacío se omite del payload y el backend
+  conserva la que había. Nunca se precarga, porque la API no la devuelve.
+- **La cuenta propia está protegida en la interfaz.** No se puede desactivar ni cambiar
+  su propio rol; el backend no lo valida y el administrador quedaría fuera de la
+  sección. El resto de sus datos sí se puede editar.
+- **No hay opción de restaurar.** El backend expone `PATCH /users/:id/restore`, pero es
+  inalcanzable: ni el listado ni `GET /users/:id` devuelven los usuarios desactivados,
+  así que no hay forma de descubrir su id. Para volver a habilitar a alguien hay que
+  tocar la base de datos o añadir antes un filtro «incluir desactivados» al backend.
+
+Un usuario desactivado deja de poder iniciar sesión, pero su historial de órdenes se
+conserva.
 
 ## Nota sobre Zod
 

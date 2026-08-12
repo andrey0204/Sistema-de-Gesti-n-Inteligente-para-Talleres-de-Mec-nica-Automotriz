@@ -15,6 +15,13 @@ export const roleLabels: Record<Role, string> = {
   MECHANIC: 'Mecánico',
 }
 
+/** Clase de badge de DaisyUI asociada a cada rol. */
+export const roleBadges: Record<Role, string> = {
+  ADMIN: 'badge-primary',
+  RECEPTIONIST: 'badge-info',
+  MECHANIC: 'badge-warning',
+}
+
 export const documentTypeLabels: Record<DocumentType, string> = {
   CC: 'Cédula de ciudadanía',
   CE: 'Cédula de extranjería',

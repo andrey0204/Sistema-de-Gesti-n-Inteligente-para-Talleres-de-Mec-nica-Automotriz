@@ -19,6 +19,7 @@ const SHORTCUTS: Shortcut[] = [
   { name: 'work-orders', label: 'Órdenes de trabajo', description: 'Seguimiento de reparaciones', icon: '🔧' },
   { name: 'reminders', label: 'Recordatorios', description: 'Mantenimientos programados', icon: '🔔', roles: ['ADMIN', 'RECEPTIONIST'] },
   { name: 'reports', label: 'Reportes', description: 'Indicadores del taller', icon: '📊', roles: ['ADMIN', 'RECEPTIONIST'] },
+  { name: 'users', label: 'Usuarios', description: 'Cuentas y roles del personal', icon: '⚙️', roles: ['ADMIN'] },
 ]
 
 const auth = useAuthStore()

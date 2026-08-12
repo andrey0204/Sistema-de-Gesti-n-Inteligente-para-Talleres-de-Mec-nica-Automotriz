@@ -2,7 +2,7 @@
 
 **Última actualización:** 2026-08-12  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-12 — Fase 14: reportes en el frontend (rango de fechas con presets, tarjetas de resumen, distribución por estado, tres listados paginados en cliente y exportación a CSV), verificado en el navegador con los tres roles contra la API real. Próximo: CRUD de usuarios.
+**Sesión finalizada:** 2026-08-12 — Fases 14 y 15: reportes (rango de fechas con presets, resumen, distribución por estado y exportación a CSV) y CRUD de usuarios, verificados en el navegador con los tres roles contra la API real. **Con esto el frontend cubre todos los módulos del backend.** Próximo: pendientes académicos (Bitácoras 8 y 9) y pruebas.
 
 ---
 
@@ -25,6 +25,7 @@
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
 | 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
 | 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `981c309` |
+| 15 | Frontend: CRUD de usuarios | Completa | `pendiente` |
 
 ## Stack Confirmado
 
@@ -64,6 +65,10 @@
 - **`/reports/orders-by-status` no acepta rango**: es un histórico completo. La tarjeta lo dice explícitamente para que no se lea como parte del periodo
 - **Los reportes no paginan**: devuelven el listado entero, así que la paginación es en memoria (`composables/useClientPagination.ts`), que fabrica el mismo `meta` que el backend para poder reusar `PaginationControls`
 - **CSV con `;` y BOM UTF-8** (`lib/csv.ts`): en es-CO la coma es el separador decimal, y sin BOM Excel rompe las tildes. Los importes se exportan con coma decimal para que la hoja los sume
+- **`PATCH /users/:id/restore` es inalcanzable desde la interfaz**: `findMany` y `findById` filtran `deletedAt: null`, así que un usuario desactivado desaparece y no hay forma de descubrir su id. Se decidió no implementar «restaurar» en el frontend; para habilitarlo habría que añadir antes un `includeDeleted` al listado del backend
+- **La contraseña de un usuario solo se envía cuando cambia**: obligatoria al crear (mínimo 8), opcional al editar. El campo vacío se omite del payload y el backend conserva la actual (`if (data.password)` en `users.service.ts`). Verificado: tras editar el nombre sin tocarla, el login sigue funcionando con la contraseña vieja
+- **La cuenta propia se protege solo en el frontend**: el backend deja que un ADMIN se desactive o se cambie el rol a sí mismo, y `authenticate` no consulta la BD (solo verifica el JWT), así que seguiría operando hasta que caducara el access token y luego quedaría fuera. `UsersView` deshabilita «Desactivar» y `UserFormModal` bloquea el selector de rol sobre la propia cuenta
+- **`/usuarios` es solo de ADMIN** aunque `GET /users` esté abierto a RECEPTIONIST: esa apertura es para asignar mecánicos a las órdenes, no para administrar cuentas
 
 ## Datos de Prueba en BD
 
@@ -119,8 +124,12 @@ detalle con máquina de estados, asignación de mecánico, items con total calcu
 imágenes) y los **recordatorios de mantenimiento** (filtros por estado y vehículo,
 alta/edición, «Completar» en un clic, resaltado de vencidos y borrado solo para ADMIN) y
 los **reportes** (rango de fechas con presets, resumen del periodo, distribución
-histórica por estado, listados de órdenes/vehículos/clientes y exportación a CSV).
-Solo usuarios sigue mostrando `PlaceholderView`.
+histórica por estado, listados de órdenes/vehículos/clientes y exportación a CSV) y
+el **CRUD de usuarios** (búsqueda, filtro por rol, alta con contraseña, edición que
+conserva la contraseña si se deja vacía y baja lógica).
+
+**Ya no queda ningún módulo pendiente**: `PlaceholderView.vue` se eliminó al quedarse
+sin uso.
 
 Recordatorios y reportes son de ADMIN y RECEPTIONIST (igual que en el backend), así que
 el ítem del menú, la tarjeta del panel principal y el `meta.roles` de la ruta se filtran
@@ -150,10 +159,16 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-**CRUD de usuarios en el frontend** (`/api/users`, solo ADMIN salvo el listado, que ya
-está abierto a RECEPTIONIST). Sigue el patrón CRUD de `src/views/clients/`, con dos
-particularidades a revisar en el backend: la contraseña solo se envía al crear y el
-borrado es lógico (`deletedAt`), como en clientes y vehículos.
+El MVP funcional está completo: backend y frontend cubren los siete módulos. Lo que
+queda es académico y de calidad:
 
-Pendientes transversales: documentar Bitácoras 8 y 9, tests automatizados (Bit. 10),
-deploy (Bit. 11), cierre (Bit. 12).
+1. **Documentar las Bitácoras 8 y 9** (frontend base e integración frontend-backend),
+   que ya están implementadas pero sin redactar. Formato: bloques por actividad, con
+   la sección final de evidencias recomendadas, como las bitácoras 1-7.
+2. **Pruebas automatizadas** (Bitácora 10). No hay ninguna todavía, ni en backend ni
+   en frontend; hasta ahora la verificación ha sido manual en el navegador.
+3. **Despliegue** (Bitácora 11) y **cierre** (Bitácora 12).
+
+Mejoras opcionales detectadas por el camino, ninguna bloqueante: permitir restaurar
+usuarios desactivados (requiere un `includeDeleted` en el listado del backend) y que
+el backend marque solo los recordatorios vencidos.
