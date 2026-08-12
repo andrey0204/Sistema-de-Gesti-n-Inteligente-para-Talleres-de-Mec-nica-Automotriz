@@ -24,7 +24,7 @@
 | 11 | Frontend: CRUD de vehículos | Completa | `3946fff` |
 | 12 | Frontend: órdenes de trabajo (estados, items, imágenes) | Completa | `fe05905` |
 | 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
-| 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `pendiente` |
+| 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `981c309` |
 
 ## Stack Confirmado
 
