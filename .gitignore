@@ -1,3 +1,6 @@
 .mcp.json
 node_modules/
 .env
+
+# Documentos locales (no se suben)
+DEMO-PRESENTACION.md

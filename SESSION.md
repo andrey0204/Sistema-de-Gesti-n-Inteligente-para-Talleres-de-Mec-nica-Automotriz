@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-08-12  
+**Última actualización:** 2026-09-02  
 **Branch:** main  
-**Sesión finalizada:** 2026-08-12 — Fases 14 y 15: reportes (rango de fechas con presets, resumen, distribución por estado y exportación a CSV) y CRUD de usuarios, verificados en el navegador con los tres roles contra la API real. **Con esto el frontend cubre todos los módulos del backend.** Documentadas además las Bitácoras 8 y 9 con sus sustentaciones. Próximo: pruebas automatizadas (Bitácora 10).
+**Sesión finalizada:** 2026-09-02 — Sesión corta de preparación para la sustentación del frontend: se creó `DEMO-PRESENTACION.md`, el guion de demostración en vivo (sin tocar código). Próximo: arrancar la Bitácora 10 (pruebas automatizadas).
 
 ---
 
@@ -86,6 +86,7 @@
 - `backend/src/config/swagger.ts` — Documentación OpenAPI completa
 - `backend/README.md` — Documentación del proyecto
 - `backend/postman/` — Colección Postman con auto-token
+- `DEMO-PRESENTACION.md` — Guion de la demostración en vivo del frontend (3 roles, 11 vistas). **Local, ignorado por git**
 - `frontend/README.md` — Stack, puesta en marcha, rutas y permisos
 - `frontend/src/lib/http.ts` — Cliente Axios con refresh automático del access token
 - `frontend/src/router/index.ts` — Rutas, `meta.roles` y guard global
@@ -159,9 +160,10 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-El MVP funcional está completo y las Bitácoras 1-9 están documentadas. Queda:
+El MVP funcional está completo, las Bitácoras 1-9 están documentadas y el guion de la
+sustentación del frontend está escrito. Queda:
 
-1. **Pruebas automatizadas** (Bitácora 10). No hay ninguna todavía, ni en backend ni
+1. **Pruebas automatizadas** (Bitácora 10) — es por donde se retoma. No hay ninguna todavía, ni en backend ni
    en frontend; hasta ahora la verificación ha sido manual en el navegador. Habrá que
    decidir alcance y herramientas (Vitest y Supertest son las opciones naturales para
    este stack).
