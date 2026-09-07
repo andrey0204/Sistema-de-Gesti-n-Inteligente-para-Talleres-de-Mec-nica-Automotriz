@@ -8,3 +8,6 @@ uploads/*
 # Documentos de bitácoras (no se versionan)
 Bitacoras.md
 Bitacora-*-Sustentacion.md
+
+# Reportes de cobertura de pruebas
+coverage/
