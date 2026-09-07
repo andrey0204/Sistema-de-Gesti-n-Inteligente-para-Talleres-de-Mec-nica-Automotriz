@@ -1,8 +1,8 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-09-02  
+**Última actualización:** 2026-09-07  
 **Branch:** main  
-**Sesión finalizada:** 2026-09-02 — Sesión corta de preparación para la sustentación del frontend: se creó `DEMO-PRESENTACION.md`, el guion de demostración en vivo (sin tocar código). Próximo: arrancar la Bitácora 10 (pruebas automatizadas).
+**Sesión finalizada:** 2026-09-07 — Bitácora 10 completa: se montó el entorno de pruebas y se escribieron 369 pruebas automatizadas (235 backend + 134 frontend), las primeras del proyecto. Documentada la bitácora y su sustentación. Próximo: Bitácora 11 (despliegue).
 
 ---
 
@@ -26,6 +26,7 @@
 | 13 | Frontend: recordatorios de mantenimiento | Completa | `cb6fb2c` |
 | 14 | Frontend: reportes (periodo, estados, CSV) | Completa | `981c309` |
 | 15 | Frontend: CRUD de usuarios | Completa | `229dfa8` |
+| 16 | Pruebas automatizadas (backend y frontend) | Completa | `0d2f46c`, `498bba1`, `cbc0b0d` |
 
 ## Stack Confirmado
 
@@ -70,6 +71,75 @@
 - **La cuenta propia se protege solo en el frontend**: el backend deja que un ADMIN se desactive o se cambie el rol a sí mismo, y `authenticate` no consulta la BD (solo verifica el JWT), así que seguiría operando hasta que caducara el access token y luego quedaría fuera. `UsersView` deshabilita «Desactivar» y `UserFormModal` bloquea el selector de rol sobre la propia cuenta
 - **`/usuarios` es solo de ADMIN** aunque `GET /users` esté abierto a RECEPTIONIST: esa apertura es para asignar mecánicos a las órdenes, no para administrar cuentas
 
+## Pruebas Automatizadas
+
+**Vitest en ambos proyectos.** `npm test` en `backend/` y en `frontend/`
+(también `test:watch` y `test:coverage`; en el frontend además `test:types`).
+Los tests viven en `tests/`, fuera de `rootDir`/`include`, así que no entran en
+el build. Correr en menos de 2 segundos era el requisito: una suite que exige
+levantar MySQL es una suite que se deja de ejecutar.
+
+| Proyecto | Pruebas | Cobertura de sentencias |
+|----------|---------|-------------------------|
+| Backend | 235 | 84% |
+| Frontend | 134 | 94% |
+
+**Alcance elegido: unitarias con mocks, sin base de datos.** Queda fuera —y se
+sigue verificando a mano y con Postman— la capa de rutas, la cadena completa de
+middlewares y las consultas reales de Prisma. La config de coverage del backend
+está acotada a lo que este alcance sí puede probar (servicios, validators,
+middlewares, shared); medir también controladores y repositorios daría un
+porcentaje engañoso.
+
+### Detalles del montaje
+
+- **`backend/vitest.config.mts`** es `.mts` porque el backend es CommonJS y con
+  `.ts` Vite avisa de sintaxis ESM en un archivo cargado como CJS
+- **Env fijas en la config del backend**: `config/env.ts` hace `process.exit(1)`
+  si falta una variable, y los tests no deben depender del `.env` real. Además
+  el `JWT_ACCESS_SECRET` conocido permite firmar y verificar tokens en el test
+- **`TZ: 'America/Bogota'` en la config del frontend**: hay tests de fechas que
+  dependen del UTC-5. Sin fijarla pasarían o fallarían según la máquina. Hay un
+  test que verifica la propia zona horaria del entorno
+- **`frontend/tsconfig.vitest.json`** revisa los tipos de los tests. No se
+  referencia desde `tsconfig.json` (sería solapamiento de proyectos composite):
+  se corre aparte con `npm run test:types`. Detectó un error real de tipos
+- **Mocks**: los servicios que usan repositorio se mockean con
+  `vi.mock('<ruta al repository>')`; `auth.service`, `work-order-items.service` y
+  `reports.service` usan Prisma directo, así que se mockea `config/database`.
+  bcrypt se deja **real** — parte de lo que se prueba es que hashea de verdad
+- **`http.ts` se prueba sustituyendo `axios.defaults.adapter`** antes de
+  importar el módulo (las instancias copian los defaults al crearse), con
+  `vi.resetModules()` entre tests para reiniciar el `refreshPromise` compartido
+
+### Cosas que aprendimos escribiendo los tests
+
+- **`limit=0` cae al valor por defecto (20), no a 1**: `parseInt('0')` es `0`,
+  falsy, así que el `|| 20` lo sustituye. No es un bug, pero no es lo que se
+  deduce leyendo el código. Fijado en un test con su explicación
+- **`Blob.text()` se come el BOM UTF-8**: la decodificación lo elimina por
+  especificación. Para verificar que el CSV lo lleva hay que mirar los bytes con
+  `arrayBuffer()`, no el texto
+- **Un cliente/vehículo dado de baja no bloquea reutilizar su documento o
+  placa** (`if (existing && !existing.deletedAt)`). Regla de negocio que solo
+  estaba en el código; ahora está en tests
+- **Recordatorios e items se borran de verdad**; clientes, vehículos y usuarios
+  hacen baja lógica. La diferencia es intencional (el historial de órdenes debe
+  seguir mostrando al cliente eliminado)
+- **`work-orders.service` comprueba pertenencia antes que transición**: un
+  mecánico ajeno recibe 403 y no un 400, que le revelaría el estado de la orden
+
+### El test que vigila la máquina de estados duplicada
+
+`frontend/tests/lib/work-order-transitions.test.ts` **lee los dos archivos** —el
+del frontend y el del backend— y compara las tablas `FORWARD_TRANSITIONS` y
+`ADMIN_BACKWARD_TRANSITIONS`. Es la red de seguridad del riesgo que ya estaba
+documentado: que alguien cambie las reglas en el backend y la copia del frontend
+se quede vieja.
+
+Verificado que funciona: se cambió a propósito una transición del frontend, el
+test falló, y se restauró.
+
 ## Datos de Prueba en BD
 
 - Admin: `admin@workshop.com` / `Admin123!`
@@ -90,6 +160,8 @@
 - `frontend/README.md` — Stack, puesta en marcha, rutas y permisos
 - `frontend/src/lib/http.ts` — Cliente Axios con refresh automático del access token
 - `frontend/src/router/index.ts` — Rutas, `meta.roles` y guard global
+- `backend/tests/` y `frontend/tests/` — Suites de pruebas (17 y 8 archivos)
+- `backend/vitest.config.mts` y `frontend/vitest.config.ts` — Entorno de pruebas
 
 ## Bitácoras Académicas (seguimiento SENA)
 
@@ -106,7 +178,7 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 7 | Historial técnico y recordatorios | Documentada + sustentación |
 | 8 | Frontend base | Documentada + sustentación |
 | 9 | Integración frontend-backend | Documentada + sustentación |
-| 10 | Pruebas y validaciones | Pendiente |
+| 10 | Pruebas y validaciones | Documentada + sustentación |
 | 11 | Despliegue e implementación | Pendiente |
 | 12 | Evaluación, mejoras y cierre | Pendiente |
 
@@ -160,19 +232,28 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-El MVP funcional está completo, las Bitácoras 1-9 están documentadas y el guion de la
-sustentación del frontend está escrito. Queda:
+El MVP funcional está completo, las Bitácoras 1-10 están documentadas y el proyecto
+tiene 369 pruebas automatizadas. Queda:
 
-1. **Pruebas automatizadas** (Bitácora 10) — es por donde se retoma. No hay ninguna todavía, ni en backend ni
-   en frontend; hasta ahora la verificación ha sido manual en el navegador. Habrá que
-   decidir alcance y herramientas (Vitest y Supertest son las opciones naturales para
-   este stack).
-2. **Despliegue** (Bitácora 11) y **cierre** (Bitácora 12).
+1. **Despliegue** (Bitácora 11) — es por donde se retoma. Hay que decidir dónde
+   (backend Node + MySQL, frontend estático), preparar las variables de entorno de
+   producción, `prisma migrate deploy`, servir los `uploads/` y el `CORS_ORIGIN` real.
+   Nota: `NODE_ENV=production` cambia el comportamiento del error-handler (esconde el
+   mensaje interno), y eso ya está cubierto por un test.
+2. **Evaluación, mejoras y cierre** (Bitácora 12).
 
 Las fechas de las bitácoras siguen el cronograma académico, no el calendario real: la
-Bitácora 8 va del 28/08 al 05/09/2026 y la 9 del 06/09 al 15/09/2026, continuando la
-serie de la Bitácora 7 (que terminaba el 27/08). La Bitácora 10 arrancaría el 16/09.
+Bitácora 9 fue del 06/09 al 15/09/2026 y la 10 del 16/09 al 25/09/2026. La Bitácora 11
+arrancaría el 26/09.
 
-Mejoras opcionales detectadas por el camino, ninguna bloqueante: permitir restaurar
-usuarios desactivados (requiere un `includeDeleted` en el listado del backend) y que
-el backend marque solo los recordatorios vencidos.
+Mejoras opcionales detectadas por el camino, ninguna bloqueante:
+
+- **Pruebas de integración** con una BD de pruebas (`mechanic_workshop_test`) y
+  Supertest, para cubrir rutas, cadena de middlewares y los 403 por rol, que hoy se
+  verifican a mano. `app.ts` ya está separado de `server.ts`, así que Supertest puede
+  montar la app sin levantar el servidor. MySQL local está activo
+- Permitir restaurar usuarios desactivados (requiere un `includeDeleted` en el listado
+  del backend)
+- Que el backend marque solo los recordatorios vencidos
+- `work-order-images.service.ts` y `shared/storage/local-storage.ts` son lo único del
+  alcance de pruebas que quedó sin cubrir (manejo de ficheros)
