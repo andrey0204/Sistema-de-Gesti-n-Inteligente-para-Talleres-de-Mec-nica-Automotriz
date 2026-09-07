@@ -17,8 +17,21 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.ts'],
-      exclude: ['src/**/*.routes.ts', 'src/config/swagger.ts', 'src/server.ts'],
+      // Solo se mide lo que este alcance puede probar: lógica de negocio,
+      // validación y middlewares. Los controladores, repositorios y rutas son
+      // la frontera con Express y Prisma; cubrirlos exige pruebas de
+      // integración contra una base de datos, que quedaron fuera de alcance.
+      // Incluirlos aquí solo produciría un porcentaje engañoso.
+      include: [
+        'src/shared/**/*.ts',
+        'src/middlewares/authenticate.ts',
+        'src/middlewares/authorize.ts',
+        'src/middlewares/validate.ts',
+        'src/middlewares/error-handler.ts',
+        'src/modules/**/*.service.ts',
+        'src/modules/**/*.validator.ts',
+        'src/modules/**/*.state-machine.ts',
+      ],
     },
   },
 });
