@@ -28,3 +28,6 @@ dist-ssr
 
 # Capturas y trazas del MCP de Playwright (verificación local)
 .playwright-mcp/
+
+# Reportes de cobertura de pruebas
+coverage/
