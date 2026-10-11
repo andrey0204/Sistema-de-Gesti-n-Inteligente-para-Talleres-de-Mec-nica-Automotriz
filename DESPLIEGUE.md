@@ -69,7 +69,9 @@ ADMIN, `GET /api/users` autenticado y el logout devuelven 200. Sin token,
 
 La primera comprobación detectó que Swagger UI interceptaba las descargas
 OpenAPI y devolvía HTML. Se registraron las rutas JSON y YAML antes de ese
-middleware. La corrección debe verificarse también después de su despliegue.
+middleware. Tras publicar `a87ff21`, ambas descargas devuelven HTTP 200 con
+contenido OpenAPI correcto y servidor relativo `/api`; también se repitieron
+correctamente las comprobaciones de autenticación y consulta protegida.
 
 Referencias: [servicios web en Render](https://render.com/docs/web-services),
 [variables e importación desde .env](https://render.com/docs/configure-environment-variables)
@@ -253,7 +255,7 @@ Los comandos específicos y las rutas de acceso se completarán cuando se selecc
 | Carga y visualización de imágenes | Pendiente |
 | Subida, consulta HTTPS y eliminación directa en Cloudinary | Correcto mediante `npm run test:storage`; prueba desde la aplicación pendiente |
 | Consulta de recordatorios y reportes | Pendiente |
-| Swagger UI y especificación OpenAPI | UI pública correcta; corregido el orden de las descargas JSON/YAML, pendiente verificar la corrección en Render |
+| Swagger UI y especificación OpenAPI | Correcto en Render: UI y descargas JSON/YAML con HTTP 200 y servidor relativo /api |
 | Datos e imágenes conservados tras reiniciar los servicios | Pendiente |
 | Procedimiento de respaldo y recuperación documentado | Pendiente |
 

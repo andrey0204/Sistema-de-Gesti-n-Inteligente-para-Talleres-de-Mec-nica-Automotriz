@@ -3,7 +3,7 @@
 **Última actualización:** 2026-10-10
 
 **Branch:** main  
-**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Backend publicado en https://taller-mecanico-api-9w77.onrender.com: salud, Swagger UI, login ADMIN, consulta autenticada de usuarios y logout devuelven HTTP 200; sin sesión, usuarios devuelve 401. Frontend y CORS definitivo pendientes. Se corrigió el orden de rutas de descargas OpenAPI tras detectar HTML en lugar de JSON; comprobación local correcta, despliegue de la corrección pendiente. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
+**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Backend publicado en https://taller-mecanico-api-9w77.onrender.com: salud, Swagger UI, login ADMIN, consulta autenticada de usuarios y logout devuelven HTTP 200; sin sesión, usuarios devuelve 401. Frontend y CORS definitivo pendientes. Se corrigió el orden de rutas de descargas OpenAPI tras detectar HTML en lugar de JSON; build y comprobación HTTP local correctos; corrección publicada en `a87ff21` y descargas JSON/YAML verificadas por HTTPS. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
 
 ---
 
@@ -233,7 +233,7 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-Cambios publicados en GitHub/main (`b40b6b4`, `93cf66a`). Configuración del backend Render
+Cambios publicados en GitHub/main (`b40b6b4`, `93cf66a`, `a87ff21`). Configuración del backend Render
 preparada en `DESPLIEGUE.md`: Node, raíz `backend`, Free; build
 `npm ci --include=dev && npm run db:generate && npm run build`; start
 `npm run db:migrate:prod && npm start`; salud `/api/health`.
@@ -243,8 +243,9 @@ sin PORT (lo asigna Render), credenciales del administrador ni variables AIVEN_*
 Backend público: https://taller-mecanico-api-9w77.onrender.com. Verificados por
 HTTPS salud, Swagger UI, login ADMIN, consulta protegida y logout (200), y
 rechazo sin token (401). Swagger utiliza `/api` relativo. Corregido el orden
-de las rutas OpenAPI JSON/YAML, con build y comprobación HTTP local correctos;
-pendiente publicar y verificar esa corrección en Render.
+de las rutas OpenAPI JSON/YAML, con build y comprobación HTTP local correctos.
+Corrección publicada en `a87ff21`: descargas JSON/YAML correctas por HTTPS;
+login y consulta protegida comprobados nuevamente tras el despliegue.
 
 Siguiente: New → Static Site, raíz `frontend`, build
 `npm ci --include=dev && npm run build`, publicación `dist`. Importar el archivo
