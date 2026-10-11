@@ -3,7 +3,7 @@
 **Última actualización:** 2026-10-10
 
 **Branch:** main  
-**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Backend publicado en https://taller-mecanico-api-9w77.onrender.com: salud, Swagger UI, login ADMIN, consulta autenticada de usuarios y logout devuelven HTTP 200; sin sesión, usuarios devuelve 401. Frontend y CORS definitivo pendientes. Se corrigió el orden de rutas de descargas OpenAPI tras detectar HTML en lugar de JSON; build y comprobación HTTP local correctos; corrección publicada en `a87ff21` y descargas JSON/YAML verificadas por HTTPS. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
+**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Backend publicado en https://taller-mecanico-api-9w77.onrender.com: salud, Swagger UI, login ADMIN, consulta autenticada de usuarios y logout devuelven HTTP 200; sin sesión, usuarios devuelve 401. Frontend publicado en https://taller-mecanico-web.onrender.com: raíz y JavaScript HTTP 200, URL de API correcta en la compilación. Rutas internas devuelven 404 y preflight CORS permite localhost. Nuevo CORS_ORIGIN preparado en los archivos privados; aplicar en Render y configurar Rewrite. Se corrigió el orden de rutas de descargas OpenAPI tras detectar HTML en lugar de JSON; build y comprobación HTTP local correctos; corrección publicada en `a87ff21` y descargas JSON/YAML verificadas por HTTPS. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
 
 ---
 
@@ -180,7 +180,7 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 8 | Frontend base | Documentada + sustentación |
 | 9 | Integración frontend-backend | Documentada + sustentación |
 | 10 | Pruebas y validaciones | Documentada + sustentación |
-| 11 | Despliegue e implementación | En ejecución: backend público verificado; frontend pendiente |
+| 11 | Despliegue e implementación | En ejecución: API y frontend publicados; Rewrite, CORS y flujos pendientes |
 | 12 | Evaluación, mejoras y cierre | Pendiente |
 
 - Formato adoptado: **bloques por actividad** (Descripción / Competencia / Fecha inicio / Fecha fin / Evidencia / Observaciones).
@@ -239,7 +239,7 @@ preparada en `DESPLIEGUE.md`: Node, raíz `backend`, Free; build
 `npm run db:migrate:prod && npm start`; salud `/api/health`.
 Archivo privado `backend/.env.render` preparado para importar con Add from .env,
 sin PORT (lo asigna Render), credenciales del administrador ni variables AIVEN_*.
-`CORS_ORIGIN` es provisional hasta conocer la URL del frontend.
+`CORS_ORIGIN=https://taller-mecanico-web.onrender.com` preparado localmente; pendiente aplicar en Environment del backend Render con Save and deploy.
 Backend público: https://taller-mecanico-api-9w77.onrender.com. Verificados por
 HTTPS salud, Swagger UI, login ADMIN, consulta protegida y logout (200), y
 rechazo sin token (401). Swagger utiliza `/api` relativo. Corregido el orden
@@ -247,12 +247,14 @@ de las rutas OpenAPI JSON/YAML, con build y comprobación HTTP local correctos.
 Corrección publicada en `a87ff21`: descargas JSON/YAML correctas por HTTPS;
 login y consulta protegida comprobados nuevamente tras el despliegue.
 
-Siguiente: New → Static Site, raíz `frontend`, build
-`npm ci --include=dev && npm run build`, publicación `dist`. Importar el archivo
-local ignorado `frontend/.env.render`: versión Node, instalación manual y URLs
-públicas de la API. Añadir Rewrite `/*` → `/index.html`. Al conocer su URL,
-actualizar CORS_ORIGIN en Render y los archivos privados locales; comprobar
-el inicio de sesión y los flujos desde el navegador.
+Frontend publicado: https://taller-mecanico-web.onrender.com, commit a1006ec
+según captura de Render. Raíz y JavaScript comprobados por HTTPS (200), con URL
+correcta de API. /login, /clientes, /ordenes y /ordenes/1 devuelven 404.
+Preflight OPTIONS devuelve 204 con origen localhost. Próximo paso en el panel:
+frontend → Redirects/Rewrites: `/*` → `/index.html`, acción Rewrite; backend →
+Environment: `CORS_ORIGIN=https://taller-mecanico-web.onrender.com`, Save and deploy.
+Archivos privados .env.production y .env.render del backend ya sincronizados.
+Después comprobar cabeceras CORS, recarga directa, login y flujos desde navegador.
 
 Preparación local de Aiven: `backend/.env.production` creado e ignorado por Git,
 con datos del servicio, credenciales de Cloudinary y nuevos secretos JWT.
@@ -265,7 +267,7 @@ Migraciones aplicadas con `db:migrate:aiven`, administrador creado con
 `db:seed:aiven` y verificación HTTP local sobre Aiven pasada con
 `db:verify:aiven`; el seed conserva el administrador existente al repetirse.
 Correo: `admin@workshop.com`; contraseña en `ADMIN_PASSWORD` del archivo privado.
-`CORS_ORIGIN` es provisional hasta crear el frontend.
+`CORS_ORIGIN` público ya está preparado en los archivos privados; falta aplicarlo al backend de Render.
 
 El MVP funcional está completo, las Bitácoras 1-10 están documentadas y el proyecto
 tiene 398 pruebas automatizadas. Queda:
@@ -276,8 +278,8 @@ tiene 398 pruebas automatizadas. Queda:
    Aiven gratuito para MySQL y Cloudinary gratuito para las imágenes. Cloudinary
    ya está integrado y comprobado mediante subida, consulta HTTPS y eliminación
    reales. Conexión TLS, migraciones y administrador de Aiven comprobados.
-   Backend publicado y comprobado por HTTPS. Pendientes el frontend en Render,
-   definir el `CORS_ORIGIN` real y comprobar los flujos públicos completos.
+   API y frontend publicados y comprobados por HTTPS. Pendientes aplicar Rewrite
+   y CORS en Render y comprobar los flujos públicos completos.
    Las actividades pendientes no se han registrado como
    realizadas; la sustentación se elaborará con los resultados del despliegue.
    Nota: `NODE_ENV=production` cambia el comportamiento del error-handler (esconde el
