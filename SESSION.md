@@ -233,6 +233,16 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
+Cambios publicados en GitHub/main (`b40b6b4`). Configuración del backend Render
+preparada en `DESPLIEGUE.md`: Node, raíz `backend`, Free; build
+`npm ci --include=dev && npm run db:generate && npm run build`; start
+`npm run db:migrate:prod && npm start`; salud `/api/health`.
+Archivo privado `backend/.env.render` preparado para importar con Add from .env,
+sin PORT (lo asigna Render), credenciales del administrador ni variables AIVEN_*.
+`CORS_ORIGIN` es provisional hasta conocer la URL del frontend.
+Swagger utiliza `/api` relativo. Pendiente crear el servicio y verificar Live,
+la URL pública, salud, documentación y login.
+
 Preparación local de Aiven: `backend/.env.production` creado e ignorado por Git,
 con datos del servicio, credenciales de Cloudinary y nuevos secretos JWT.
 El usuario completó `AIVEN_PASSWORD`. `npm run db:check:prod`

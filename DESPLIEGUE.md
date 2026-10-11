@@ -26,7 +26,50 @@ Fuentes oficiales consultadas el 10/10/2026:
 - [Aiven: características y límites del plan gratuito de MySQL](https://aiven.io/docs/products/mysql/concepts/mysql-free-tier).
 - [Cloudinary: plan gratuito y consumo de créditos](https://cloudinary.com/documentation/billing_and_plans).
 
-El siguiente paso es publicar los cambios del repositorio en GitHub y configurar la API y el frontend en Render con las variables del destino.
+Los cambios de Cloudinary y Aiven se publicaron en `main` mediante el commit
+`b40b6b4`. El siguiente paso es configurar la API y el frontend en Render con
+las variables del destino.
+
+## Configuración del backend en Render
+
+Crear un **Web Service** desde el repositorio de GitHub, usando estos valores:
+
+| Campo | Valor |
+|---|---|
+| Name | `taller-mecanico-api` (si está disponible) |
+| Language | `Node` |
+| Branch | `main` |
+| Region | `Oregon (US West)` |
+| Root Directory | `backend` |
+| Compute | `Free` |
+| Build Command | `npm ci --include=dev && npm run db:generate && npm run build` |
+| Start Command | `npm run db:migrate:prod && npm start` |
+| Health Check Path | `/api/health` |
+
+Las dependencias de desarrollo se incluyen durante la instalación porque la
+compilación necesita TypeScript y los comandos de base de datos necesitan el
+CLI de Prisma. El comando de inicio aplica las migraciones pendientes antes
+de arrancar la API. El administrador ya existe en Aiven.
+
+Se preparó `backend/.env.render`, privado e ignorado por Git, con las variables
+del backend copiadas de `.env.production` y `NODE_VERSION=24.13.1`. Importar su
+contenido mediante **Add from .env** en Render. Contiene los secretos de JWT,
+la URL MySQL y las credenciales de Cloudinary; las credenciales del
+administrador y las variables auxiliares `AIVEN_*` se conservan en la
+configuración local de preparación. Render asigna `PORT`.
+
+`CORS_ORIGIN=http://localhost:5173` es provisional. Se sustituirá por la URL
+pública exacta del frontend al crear su Static Site. Swagger utiliza `/api`
+como dirección relativa y funciona en la dirección del servidor publicado.
+
+Después de crear el servicio, verificar el estado **Live**, la dirección
+`https://<nombre-asignado>.onrender.com/api/health`, Swagger bajo `/docs` y el
+inicio de sesión contra la API pública. La dirección real y los resultados
+se registrarán tras el despliegue.
+
+Referencias: [servicios web en Render](https://render.com/docs/web-services),
+[variables e importación desde .env](https://render.com/docs/configure-environment-variables)
+y [versión de Node](https://render.com/docs/node-version).
 
 ## Avance de la creación de servicios
 
