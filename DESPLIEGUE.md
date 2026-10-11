@@ -2,7 +2,7 @@
 
 Sistema de Gestión Inteligente para Talleres de Mecánica Automotriz.
 
-**Estado al 10/10/2026:** el usuario requiere alojamiento gratuito y un enlace público para que los evaluadores prueben la aplicación. La cuenta de Render está creada. MySQL de Aiven está conectado con TLS, la migración inicial está aplicada y el administrador del destino está creado con contraseña propia. Se verificaron las tablas, el inicio de sesión y una ruta protegida mediante una API temporal local conectada a Aiven. Cloudinary está integrado y comprobado. La publicación de la API y el frontend en Render sigue pendiente. Este documento acompaña la Bitácora 11 y se completará durante la implementación.
+**Estado al 10/10/2026:** el backend está publicado en `https://taller-mecanico-api-9w77.onrender.com`. Se verificaron por HTTPS la salud, Swagger UI, el inicio de sesión ADMIN, la consulta protegida de usuarios y el cierre de sesión; el acceso sin token devuelve 401. MySQL de Aiven está conectado con TLS, la migración inicial está aplicada y el administrador tiene contraseña propia. Cloudinary está integrado y comprobado directamente. La publicación del frontend, el origen CORS definitivo y la verificación de los flujos completos siguen pendientes. Este documento acompaña la Bitácora 11.
 
 ## Propuesta de alojamiento gratuito
 
@@ -27,8 +27,8 @@ Fuentes oficiales consultadas el 10/10/2026:
 - [Cloudinary: plan gratuito y consumo de créditos](https://cloudinary.com/documentation/billing_and_plans).
 
 Los cambios de Cloudinary y Aiven se publicaron en `main` mediante el commit
-`b40b6b4`. El siguiente paso es configurar la API y el frontend en Render con
-las variables del destino.
+`b40b6b4`; la configuración de Render y Swagger relativo se publicaron en
+`93cf66a`. El siguiente paso es publicar el frontend y configurar su origen en la API.
 
 ## Configuración del backend en Render
 
@@ -62,18 +62,55 @@ configuración local de preparación. Render asigna `PORT`.
 pública exacta del frontend al crear su Static Site. Swagger utiliza `/api`
 como dirección relativa y funciona en la dirección del servidor publicado.
 
-Después de crear el servicio, verificar el estado **Live**, la dirección
-`https://<nombre-asignado>.onrender.com/api/health`, Swagger bajo `/docs` y el
-inicio de sesión contra la API pública. La dirección real y los resultados
-se registrarán tras el despliegue.
+Servicio publicado: `https://taller-mecanico-api-9w77.onrender.com`.
+Verificación por HTTPS: `/api/health` y `/docs/` devuelven 200; el login
+ADMIN, `GET /api/users` autenticado y el logout devuelven 200. Sin token,
+`GET /api/users` devuelve 401. La sesión de prueba quedó cerrada.
+
+La primera comprobación detectó que Swagger UI interceptaba las descargas
+OpenAPI y devolvía HTML. Se registraron las rutas JSON y YAML antes de ese
+middleware. La corrección debe verificarse también después de su despliegue.
 
 Referencias: [servicios web en Render](https://render.com/docs/web-services),
 [variables e importación desde .env](https://render.com/docs/configure-environment-variables)
 y [versión de Node](https://render.com/docs/node-version).
 
+## Configuración del frontend en Render
+
+Crear **New → Static Site** desde el mismo repositorio de GitHub:
+
+| Campo | Valor |
+|---|---|
+| Name | `taller-mecanico-web` (si está disponible) |
+| Branch | `main` |
+| Root Directory | `frontend` |
+| Build Command | `npm ci --include=dev && npm run build` |
+| Publish Directory | `dist` |
+
+Importar mediante **Add from .env** el archivo local `frontend/.env.render`,
+ignorado por Git. Contiene `NODE_VERSION=24.13.1`, `SKIP_INSTALL_DEPS=true`
+(la instalación está incluida en el comando),
+`VITE_API_URL=https://taller-mecanico-api-9w77.onrender.com/api` y
+`VITE_UPLOADS_URL=https://taller-mecanico-api-9w77.onrender.com/uploads`.
+Las variables `VITE_*` contienen direcciones públicas; los secretos se conservan
+exclusivamente en el backend. Las imágenes de Cloudinary utilizan su propia URL HTTPS.
+
+En **Redirects/Rewrites**, añadir **Source Path** `/*`, **Destination Path**
+`/index.html`, **Action** `Rewrite`, para permitir la recarga de rutas de Vue Router.
+
+Una vez asignada la URL del frontend, actualizar `CORS_ORIGIN` en el servicio
+del backend con ese origen exacto, sin `/` final ni rutas, y guardar con
+redespliegue. Sin esta actualización, el navegador no podrá usar la API desde
+el nuevo sitio. Sincronizar también el valor en los archivos privados locales
+`backend/.env.production` y `backend/.env.render`. Verificar después el login,
+la navegación directa y los flujos operativos desde el navegador.
+
+Referencias: [Vue y rutas en Render](https://render.com/docs/deploy-vue-js) y
+[sitios estáticos e instalación de dependencias](https://render.com/docs/static-sites).
+
 ## Avance de la creación de servicios
 
-- Render: cuenta creada y formulario de configuración del backend abierto; despliegue pendiente.
+- Render: backend publicado en `https://taller-mecanico-api-9w77.onrender.com`; salud, Swagger UI, login ADMIN, consulta protegida y logout comprobados por HTTPS. Frontend pendiente.
 - Aiven: proyecto `taller-mecanico-am`, servicio `taller-mecanico-db`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Conexión TLS verificada, migración `20260413200324_init` aplicada y ocho tablas del sistema presentes. Administrador inicial creado y login por HTTP comprobado desde la API temporal local.
 - Cloudinary: cuenta creada y tres credenciales configuradas en `backend/.env`, archivo ignorado por Git. Integración implementada y `STORAGE_PROVIDER=cloudinary` activado localmente. Prueba real de subida, consulta HTTPS y eliminación correcta; prueba desde la aplicación desplegada pendiente.
 
@@ -208,15 +245,15 @@ Los comandos específicos y las rutas de acceso se completarán cuando se selecc
 |---|---|
 | Conexión desde Prisma, consulta y cifrado TLS con Aiven | Correcto mediante `npm run db:check:prod` |
 | Migraciones aplicadas en el destino | Correcto: `20260413200324_init` aplicada en Aiven |
-| API conectada a MySQL y `/api/health` accesible | Correcto desde API temporal local sobre Aiven; dirección pública pendiente |
-| Inicio de sesión del administrador | Correcto por HTTP desde API temporal local sobre Aiven; dirección pública pendiente |
+| API conectada a MySQL y `/api/health` accesible | Correcto en Render por HTTPS: salud y consulta autenticada de usuarios, HTTP 200 |
+| Inicio de sesión del administrador | Correcto en Render por HTTPS, HTTP 200; logout correcto y acceso sin sesión rechazado con 401 |
 | Acceso y restricciones de los tres roles | Pendiente |
 | Recarga directa de rutas internas del frontend | Pendiente |
 | Creación y consulta de una orden de trabajo | Pendiente |
 | Carga y visualización de imágenes | Pendiente |
 | Subida, consulta HTTPS y eliminación directa en Cloudinary | Correcto mediante `npm run test:storage`; prueba desde la aplicación pendiente |
 | Consulta de recordatorios y reportes | Pendiente |
-| Swagger UI y especificación OpenAPI | Pendiente |
+| Swagger UI y especificación OpenAPI | UI pública correcta; corregido el orden de las descargas JSON/YAML, pendiente verificar la corrección en Render |
 | Datos e imágenes conservados tras reiniciar los servicios | Pendiente |
 | Procedimiento de respaldo y recuperación documentado | Pendiente |
 

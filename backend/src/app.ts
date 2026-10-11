@@ -30,9 +30,6 @@ app.use(cors(corsOptions));
 // Static files for uploads
 app.use('/uploads', express.static(path.resolve(env.UPLOAD_DIR)));
 
-// Swagger UI
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
 // OpenAPI spec as JSON (download)
 app.get('/docs/openapi.json', (_req, res) => {
   res.set('Content-Disposition', 'attachment; filename="openapi.json"');
@@ -45,6 +42,9 @@ app.get('/docs/openapi.yaml', (_req, res) => {
   res.set('Content-Disposition', 'attachment; filename="openapi.yaml"');
   res.send(YAML.stringify(swaggerDocument));
 });
+
+// Register downloads before Swagger UI, which also handles nested /docs paths.
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Health check
 app.get('/api/health', (_req, res) => {
