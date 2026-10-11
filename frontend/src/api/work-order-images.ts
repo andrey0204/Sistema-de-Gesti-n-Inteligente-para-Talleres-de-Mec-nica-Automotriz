@@ -4,14 +4,14 @@ import type { WorkOrderImage } from '@/types/models'
 
 /**
  * Imágenes de una orden. Subir está permitido a los tres roles; borrar, solo a
- * ADMIN. El campo `path` que devuelve el backend es la ruta en su disco, así
- * que la URL pública se arma con `imageUrl()` a partir de `filename`.
+ * ADMIN. `path` contiene la URL HTTPS en Cloudinary o la ruta local del disco.
  */
 
 const uploadsUrl = import.meta.env.VITE_UPLOADS_URL ?? 'http://localhost:3000/uploads'
 
 export function imageUrl(image: WorkOrderImage): string {
-  return `${uploadsUrl}/${image.filename}`
+  if (image.path.startsWith('https://res.cloudinary.com/')) return image.path
+  return `${uploadsUrl.replace(/\/$/, '')}/${image.filename}`
 }
 
 export async function listImages(workOrderId: number): Promise<WorkOrderImage[]> {

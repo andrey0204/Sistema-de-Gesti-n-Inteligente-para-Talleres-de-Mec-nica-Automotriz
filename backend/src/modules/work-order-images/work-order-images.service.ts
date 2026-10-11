@@ -1,8 +1,8 @@
 import { Role } from '@prisma/client';
 import { prisma } from '../../config/database';
 import { AppError } from '../../shared/utils/app-error';
-import { storageService } from '../../shared/storage/local-storage';
-import { FileInfo } from '../../shared/storage/storage.interface';
+import { storageService } from '../../shared/storage/storage';
+import { UploadFile } from '../../shared/storage/storage.interface';
 
 interface AuthUser {
   id: number;
@@ -29,19 +29,20 @@ export async function list(workOrderId: number, user: AuthUser) {
   });
 }
 
-export async function upload(workOrderId: number, file: FileInfo, user: AuthUser) {
+export async function upload(workOrderId: number, file: UploadFile, user: AuthUser) {
   await getWorkOrderOrFail(workOrderId, user);
-
-  return prisma.workOrderImage.create({
-    data: {
-      workOrderId,
-      filename: file.filename,
-      originalName: file.originalName,
-      mimeType: file.mimeType,
-      path: file.path,
-      size: file.size,
-    },
-  });
+  const storedFile = await storageService.uploadFile(file);
+  try {
+    return await prisma.workOrderImage.create({ data: { workOrderId, ...storedFile } });
+  } catch (error) {
+    // Compensar una subida cuyo registro no pudo guardarse en MySQL.
+    try {
+      await storageService.deleteFile(storedFile);
+    } catch {
+      console.error('Could not clean up an image after its database record failed');
+    }
+    throw error;
+  }
 }
 
 export async function remove(workOrderId: number, id: number, user: AuthUser) {
@@ -50,6 +51,6 @@ export async function remove(workOrderId: number, id: number, user: AuthUser) {
   const image = await prisma.workOrderImage.findFirst({ where: { id, workOrderId } });
   if (!image) throw AppError.notFound('Image not found');
 
-  await storageService.deleteFile(image.filename);
+  await storageService.deleteFile(image);
   return prisma.workOrderImage.delete({ where: { id } });
 }

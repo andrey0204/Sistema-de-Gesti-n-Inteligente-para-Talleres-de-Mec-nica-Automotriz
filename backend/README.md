@@ -49,7 +49,12 @@ El servidor inicia en `http://localhost:3000`.
 | `npm start` | Ejecutar build de produccion |
 | `npm run db:migrate` | Ejecutar migraciones Prisma |
 | `npm run db:migrate:prod` | Deploy de migraciones (produccion) |
-| `npm run db:seed` | Poblar base de datos con datos de prueba |
+| `npm run db:seed` | Crear el administrador inicial; conservarlo si ya existe uno activo |
+| `npm run db:check:prod` | Verificar la conexión TLS a Aiven y guardar la URL en `.env.production` |
+| `npm run db:migrate:aiven` | Aplicar migraciones usando exclusivamente `.env.production` |
+| `npm run db:seed:aiven` | Crear el administrador del destino usando `.env.production` |
+| `npm run db:status:aiven` | Consultar el estado de las migraciones de Aiven |
+| `npm run db:verify:aiven` | Verificar tablas, contraseña y login por HTTP sobre Aiven |
 | `npm run db:studio` | Abrir Prisma Studio (GUI de BD) |
 | `npm run db:generate` | Regenerar Prisma Client |
 
@@ -180,15 +185,20 @@ Any state → CANCELLED (final, no return)
 
 ## Datos de prueba
 
-El seed (`npm run db:seed`) crea:
+El seed (`npm run db:seed`) crea únicamente el administrador inicial si no existe
+uno activo. En desarrollo, cuando no se configuran `ADMIN_EMAIL` y
+`ADMIN_PASSWORD`, utiliza:
 
 | Rol | Email | Password |
 |-----|-------|----------|
 | Admin | admin@workshop.com | Admin123! |
-| Mechanic | carlos@workshop.com | Mechanic123! |
-| Receptionist | maria@workshop.com | Reception123! |
 
-Tambien crea un cliente (Juan Perez) con un vehiculo (Toyota Corolla 2021, placa ABC-123).
+En producción exige `ADMIN_EMAIL` y `ADMIN_PASSWORD` propios del destino. La
+contraseña debe tener al menos 12 caracteres y no superar 72 bytes; se almacena
+como hash bcrypt. `ADMIN_FULL_NAME` configura el nombre mostrado. Las cuentas de
+recepción y mecánico y los datos de demostración se crean por separado.
+
+Para los comandos locales de Aiven, consultar [DESPLIEGUE.md](../DESPLIEGUE.md).
 
 ## Estructura del proyecto
 

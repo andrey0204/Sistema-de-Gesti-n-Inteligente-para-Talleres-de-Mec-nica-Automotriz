@@ -14,10 +14,9 @@ export async function upload(req: Request, res: Response): Promise<void> {
   const image = await imagesService.upload(
     Number(req.params.workOrderId),
     {
-      filename: req.file.filename,
+      buffer: req.file.buffer,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
-      path: req.file.path,
       size: req.file.size,
     },
     req.user!,

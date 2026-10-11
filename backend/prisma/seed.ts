@@ -1,13 +1,16 @@
+import 'dotenv/config';
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { getInitialAdminConfig } from '../src/config/initial-admin';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding database...');
+  const config = getInitialAdminConfig(process.env);
 
   const existingAdmin = await prisma.user.findFirst({
-    where: { role: Role.ADMIN },
+    where: { role: Role.ADMIN, deletedAt: null },
   });
 
   if (existingAdmin) {
@@ -15,13 +18,13 @@ async function main() {
     return;
   }
 
-  const hashedPassword = await bcrypt.hash('Admin123!', 10);
+  const hashedPassword = await bcrypt.hash(config.password, 10);
 
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@workshop.com',
+      email: config.email,
       password: hashedPassword,
-      fullName: 'System Administrator',
+      fullName: config.fullName,
       role: Role.ADMIN,
     },
   });
@@ -32,8 +35,9 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('Seed error:', e);
-    process.exit(1);
+    const code = (e as { code?: string; errorCode?: string }).code ?? e.errorCode;
+    console.error(e.constructor.name.startsWith('Prisma') ? `Seed failed${code ? ` (${code})` : ''}.` : e.message);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

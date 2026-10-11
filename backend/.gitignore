@@ -3,6 +3,9 @@ dist/
 uploads/*
 !uploads/.gitkeep
 .env
+.env.*
+!.env.example
+!.env.production.example
 *.log
 
 # Documentos de bitácoras (no se versionan)

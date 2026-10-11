@@ -1,8 +1,9 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-09-07  
+**Última actualización:** 2026-10-10
+
 **Branch:** main  
-**Sesión finalizada:** 2026-09-07 — Bitácora 10 completa: se montó el entorno de pruebas y se escribieron 369 pruebas automatizadas (235 backend + 134 frontend), las primeras del proyecto. Documentada la bitácora y su sustentación. Próximo: Bitácora 11 (despliegue).
+**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Pendientes las variables definitivas y la publicación en Render; no se ha publicado el sistema. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
 
 ---
 
@@ -57,7 +58,7 @@
 - **`GET /api/users` abierto a RECEPTIONIST** (Fase 12): recepción puede asignar mecánico a una orden, así que necesita listarlos. El resto de endpoints de `/users` sigue siendo solo de ADMIN
 - **Máquina de estados replicada en el frontend** (`lib/work-order-transitions.ts`) solo para decidir qué botones mostrar; la validación real la hace el backend. Si cambian las reglas allí, hay que actualizar esa tabla
 - **Importes**: el backend guarda `Decimal(10,2)` y los devuelve como string. Los formularios los piden **sin separador de miles** (`150000` o `150000.50`) porque en es-CO el punto es separador de miles y «150.000» se interpretaría como 150. `formatCurrency` muestra centavos solo cuando el importe los tiene
-- **La ruta `path` de las imágenes es la del disco del servidor**, no sirve en el navegador: la URL pública se arma con `VITE_UPLOADS_URL` + `filename` desde `api/work-order-images.ts`
+- **Las imágenes admiten almacenamiento local y Cloudinary**: `filename` guarda el nombre local o el `public_id`; `path` guarda la ruta del disco o la URL HTTPS de Cloudinary. `api/work-order-images.ts` utiliza la URL remota cuando corresponde y `VITE_UPLOADS_URL` + `filename` para imágenes locales. `STORAGE_PROVIDER` elige dónde guardar las nuevas imágenes; el borrado usa el proveedor del archivo guardado.
 - **Campos «solo fecha» (`scheduledDate`) se guardan a medianoche UTC**: el frontend envía `YYYY-MM-DD` y `z.coerce.date()` lo interpreta como UTC. Formatearlos en la zona local los correría un día atrás en Colombia (UTC-5), así que se usa `formatDateOnly` (formatea en UTC), no `formatDate`. Verificado: `2026-05-15T00:00:00.000Z` se muestra 15/05/2026
 - **El backend nunca marca `OVERDUE` por sí solo**: no hay tarea programada, un recordatorio pendiente cuya fecha ya pasó sigue guardado como `PENDING`. El listado lo resalta en rojo comparando fechas en el cliente; el estado `OVERDUE` solo se asigna a mano desde el formulario de edición
 - **`PATCH /maintenance-reminders/:id` no admite `vehicleId`**: al editar, el vehículo se muestra fijo y solo se cambian descripción, fecha, estado y notas
@@ -179,7 +180,7 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 8 | Frontend base | Documentada + sustentación |
 | 9 | Integración frontend-backend | Documentada + sustentación |
 | 10 | Pruebas y validaciones | Documentada + sustentación |
-| 11 | Despliegue e implementación | Pendiente |
+| 11 | Despliegue e implementación | En preparación: diagnóstico y plan; destino pendiente |
 | 12 | Evaluación, mejoras y cierre | Pendiente |
 
 - Formato adoptado: **bloques por actividad** (Descripción / Competencia / Fecha inicio / Fecha fin / Evidencia / Observaciones).
@@ -232,12 +233,32 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
-El MVP funcional está completo, las Bitácoras 1-10 están documentadas y el proyecto
-tiene 369 pruebas automatizadas. Queda:
+Preparación local de Aiven: `backend/.env.production` creado e ignorado por Git,
+con datos del servicio, credenciales de Cloudinary y nuevos secretos JWT.
+El usuario completó `AIVEN_PASSWORD`. `npm run db:check:prod`
+(desde `backend/`) verifica la conexión mediante `SELECT 1` y el cifrado TLS;
+solo tras el éxito guarda `DATABASE_URL` con la contraseña codificada. No carga
+`.env` ni modifica MySQL. Probada la salida controlada ante contraseña vacía y verificada la conexión real:
+autenticación, consulta y cifrado TLS correctos; `DATABASE_URL` ya está guardada.
+Migraciones aplicadas con `db:migrate:aiven`, administrador creado con
+`db:seed:aiven` y verificación HTTP local sobre Aiven pasada con
+`db:verify:aiven`; el seed conserva el administrador existente al repetirse.
+Correo: `admin@workshop.com`; contraseña en `ADMIN_PASSWORD` del archivo privado.
+`CORS_ORIGIN` es provisional hasta crear el frontend.
 
-1. **Despliegue** (Bitácora 11) — es por donde se retoma. Hay que decidir dónde
-   (backend Node + MySQL, frontend estático), preparar las variables de entorno de
-   producción, `prisma migrate deploy`, servir los `uploads/` y el `CORS_ORIGIN` real.
+El MVP funcional está completo, las Bitácoras 1-10 están documentadas y el proyecto
+tiene 398 pruebas automatizadas. Queda:
+
+1. **Despliegue** (Bitácora 11) — iniciado el diagnóstico y el borrador académico
+   de cinco actividades. Ver `DESPLIEGUE.md` y la sección nueva de
+   `backend/Bitacoras.md`. Destino acordado: Render gratuito para frontend y API,
+   Aiven gratuito para MySQL y Cloudinary gratuito para las imágenes. Cloudinary
+   ya está integrado y comprobado mediante subida, consulta HTTPS y eliminación
+   reales. Conexión TLS, migraciones y administrador de Aiven comprobados.
+   Pendientes publicar los cambios en GitHub, configurar API y frontend en
+   Render, definir el `CORS_ORIGIN` real y comprobar los flujos públicos.
+   Las actividades pendientes no se han registrado como
+   realizadas; la sustentación se elaborará con los resultados del despliegue.
    Nota: `NODE_ENV=production` cambia el comportamiento del error-handler (esconde el
    mensaje interno), y eso ya está cubierto por un test.
 2. **Evaluación, mejoras y cierre** (Bitácora 12).
@@ -255,5 +276,7 @@ Mejoras opcionales detectadas por el camino, ninguna bloqueante:
 - Permitir restaurar usuarios desactivados (requiere un `includeDeleted` en el listado
   del backend)
 - Que el backend marque solo los recordatorios vencidos
-- `work-order-images.service.ts` y `shared/storage/local-storage.ts` son lo único del
-  alcance de pruebas que quedó sin cubrir (manejo de ficheros)
+- Los servicios de imágenes y almacenamiento local/Cloudinary cuentan ahora con
+  pruebas de permisos, compensación de subidas, guardado, borrado y elección del
+  proveedor. La prueba real directa en Cloudinary pasa; falta el flujo completo
+  de imágenes en una orden de trabajo desplegada.

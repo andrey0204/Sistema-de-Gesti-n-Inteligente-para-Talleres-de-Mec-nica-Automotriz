@@ -139,10 +139,10 @@ export const swaggerDocument = {
         type: 'object',
         properties: {
           id: { type: 'integer', example: 1 },
-          filename: { type: 'string', example: 'a1b2c3d4.jpg' },
+          filename: { type: 'string', description: 'Local filename or Cloudinary public_id', example: 'a1b2c3d4.jpg' },
           originalName: { type: 'string', example: 'foto-frenos.jpg' },
           mimeType: { type: 'string', example: 'image/jpeg' },
-          path: { type: 'string' },
+          path: { type: 'string', description: 'Local filesystem path or Cloudinary HTTPS URL' },
           size: { type: 'integer', example: 245000 },
           workOrderId: { type: 'integer', example: 1 },
           createdAt: { type: 'string', format: 'date-time' },

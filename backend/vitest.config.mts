@@ -9,6 +9,7 @@ export default defineConfig({
     // alguna, así que se definen aquí antes de importar cualquier módulo.
     env: {
       NODE_ENV: 'test',
+      STORAGE_PROVIDER: 'local',
       DATABASE_URL: 'mysql://test:test@localhost:3306/mechanic_workshop_test',
       JWT_ACCESS_SECRET: 'test-access-secret-0123456789',
       JWT_REFRESH_SECRET: 'test-refresh-secret-0123456789',
