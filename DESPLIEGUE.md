@@ -2,7 +2,7 @@
 
 Sistema de Gestión Inteligente para Talleres de Mecánica Automotriz.
 
-**Estado al 10/10/2026:** el backend está publicado en `https://taller-mecanico-api-9w77.onrender.com`. Se verificaron por HTTPS la salud, Swagger UI, el inicio de sesión ADMIN, la consulta protegida de usuarios y el cierre de sesión; el acceso sin token devuelve 401. MySQL de Aiven está conectado con TLS, la migración inicial está aplicada y el administrador tiene contraseña propia. Cloudinary está integrado y comprobado directamente. Frontend publicado en `https://taller-mecanico-web.onrender.com`: documento Vue y JavaScript accesibles por HTTPS, con la URL de API correcta incorporada en la compilación. Pendientes aplicar la regla Rewrite y el origen CORS en Render, y verificar los flujos completos. Este documento acompaña la Bitácora 11.
+**Estado al 10/10/2026:** el backend está publicado en `https://taller-mecanico-api-9w77.onrender.com`. Se verificaron por HTTPS la salud, Swagger UI, el inicio de sesión ADMIN, la consulta protegida de usuarios y el cierre de sesión; el acceso sin token devuelve 401. MySQL de Aiven está conectado con TLS, la migración inicial está aplicada y el administrador tiene contraseña propia. Cloudinary está integrado y comprobado directamente. Frontend publicado en `https://taller-mecanico-web.onrender.com`: documento Vue y JavaScript accesibles por HTTPS, con la URL de API correcta incorporada en la compilación. Rewrite y CORS aplicados y comprobados por HTTPS: rutas internas 200, preflights 204 con el origen público y Authorization permitido. Login ADMIN, consulta protegida y logout correctos al enviar el origen del frontend. Pendientes los flujos completos desde el navegador, los tres roles y la persistencia. Este documento acompaña la Bitácora 11.
 
 ## Propuesta de alojamiento gratuito
 
@@ -28,7 +28,7 @@ Fuentes oficiales consultadas el 10/10/2026:
 
 Los cambios de Cloudinary y Aiven se publicaron en `main` mediante el commit
 `b40b6b4`; la configuración de Render y Swagger relativo se publicaron en
-`93cf66a`. El siguiente paso es aplicar la regla de rutas del frontend y configurar su origen en la API.
+`93cf66a`. El siguiente paso es verificar desde el navegador los flujos operativos, las imágenes y los permisos por rol.
 
 ## Configuración del backend en Render
 
@@ -58,10 +58,10 @@ la URL MySQL y las credenciales de Cloudinary; las credenciales del
 administrador y las variables auxiliares `AIVEN_*` se conservan en la
 configuración local de preparación. Render asigna `PORT`.
 
-`CORS_ORIGIN=https://taller-mecanico-web.onrender.com` está preparado en los
-archivos privados locales. Debe aplicarse también en Environment del backend
-en Render: la comprobación pública todavía devuelve el origen de localhost. Swagger utiliza `/api`
-como dirección relativa y funciona en la dirección del servidor publicado.
+`CORS_ORIGIN=https://taller-mecanico-web.onrender.com` está configurado tanto
+en Render como en los archivos privados locales. Comprobados los preflights
+de login y de consulta con token: origen público, métodos y cabeceras correctos.
+Swagger utiliza `/api` relativo y funciona en el servidor publicado.
 
 Servicio publicado: `https://taller-mecanico-api-9w77.onrender.com`.
 Verificación por HTTPS: `/api/health` y `/docs/` devuelven 200; el login
@@ -104,24 +104,26 @@ En **Redirects/Rewrites**, añadir **Source Path** `/*`, **Destination Path**
 Frontend publicado en `https://taller-mecanico-web.onrender.com`. Comprobación
 por HTTPS: raíz y JavaScript principal devuelven 200; la compilación contiene
 `https://taller-mecanico-api-9w77.onrender.com/api`. Las rutas `/login`,
-`/clientes`, `/ordenes` y `/ordenes/1` devuelven 404, por lo que la regla
-Rewrite debe aplicarse todavía en el panel de Render.
+`/clientes`, `/ordenes` y `/ordenes/1` devuelven ahora 200 y el mismo documento
+Vue que la raíz, tras guardar Rewrite `/*` a `/index.html` en Render. Esta
+comprobación acredita la entrega de la SPA al acceder directamente; la navegación
+y los datos de cada vista se comprobarán desde el navegador.
 
 El preflight OPTIONS del login devuelve 204 con
-`Access-Control-Allow-Origin: http://localhost:5173`, que no corresponde al
-sitio publicado. En **Environment** del backend, editar `CORS_ORIGIN` con
-`https://taller-mecanico-web.onrender.com`, sin `/` final ni rutas, y pulsar
-**Save and deploy**. Los archivos privados `backend/.env.production` y
-`backend/.env.render` ya contienen ese valor; modificar esos archivos no
-actualiza las variables del servicio publicado. Verificar después el preflight,
-la recarga directa y el login desde el navegador.
+`Access-Control-Allow-Origin: https://taller-mecanico-web.onrender.com`,
+credenciales habilitadas, POST y Content-Type permitidos. El preflight de
+`/api/users` permite también Authorization. Tras actualizar Environment del
+backend y desplegar, se repitieron por HTTPS salud, login ADMIN, consulta
+protegida y logout con el encabezado Origin del frontend: respuestas correctas.
+Sin token, la consulta protegida conserva el rechazo 401. La sesión de prueba
+fue cerrada. Los archivos privados del backend están sincronizados con ese origen.
 
 Referencias: [Vue y rutas en Render](https://render.com/docs/deploy-vue-js) y
 [sitios estáticos e instalación de dependencias](https://render.com/docs/static-sites).
 
 ## Avance de la creación de servicios
 
-- Render: backend publicado en `https://taller-mecanico-api-9w77.onrender.com`; salud, Swagger UI, login ADMIN, consulta protegida y logout comprobados por HTTPS. Frontend publicado en `https://taller-mecanico-web.onrender.com`, con raíz y JavaScript verificados; Rewrite y CORS pendientes en el panel.
+- Render: backend publicado en `https://taller-mecanico-api-9w77.onrender.com`; salud, Swagger UI, login ADMIN, consulta protegida y logout comprobados por HTTPS. Frontend publicado en `https://taller-mecanico-web.onrender.com`, con raíz, JavaScript, rutas directas y CORS verificados. Login ADMIN y consulta protegida comprobados con Origin del frontend; flujos desde navegador pendientes.
 - Aiven: proyecto `taller-mecanico-am`, servicio `taller-mecanico-db`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Conexión TLS verificada, migración `20260413200324_init` aplicada y ocho tablas del sistema presentes. Administrador inicial creado y login por HTTP comprobado desde la API temporal local.
 - Cloudinary: cuenta creada y tres credenciales configuradas en `backend/.env`, archivo ignorado por Git. Integración implementada y `STORAGE_PROVIDER=cloudinary` activado localmente. Prueba real de subida, consulta HTTPS y eliminación correcta; prueba desde la aplicación desplegada pendiente.
 
@@ -131,7 +133,7 @@ El proyecto utiliza Prisma 6: su conexión MySQL permite `sslcert` para indicar 
 
 ## Preparación de la conexión a Aiven
 
-Se creó `backend/.env.production`, separado de `backend/.env` e ignorado por Git. Incluye el host, puerto, usuario y base de datos observados en Aiven, las credenciales locales de Cloudinary y nuevos secretos JWT propios del destino. `AIVEN_PASSWORD` está configurada por el usuario y `DATABASE_URL` fue generada y guardada después de verificar la conexión. `CORS_ORIGIN` conserva un valor provisional que se sustituirá por la dirección pública del frontend antes del despliegue.
+Se creó `backend/.env.production`, separado de `backend/.env` e ignorado por Git. Incluye el host, puerto, usuario y base de datos observados en Aiven, las credenciales locales de Cloudinary y nuevos secretos JWT propios del destino. `AIVEN_PASSWORD` está configurada por el usuario y `DATABASE_URL` fue generada y guardada después de verificar la conexión. `CORS_ORIGIN` ya utiliza la dirección pública del frontend, tanto localmente como en Render.
 
 1. Introducir la contraseña renovada del usuario de Aiven en `AIVEN_PASSWORD`, entre las comillas, y guardar el archivo.
 2. Desde `backend/`, ejecutar `npm run db:check:prod`.
@@ -260,8 +262,8 @@ Los comandos específicos y las rutas de acceso se completarán cuando se selecc
 | Inicio de sesión del administrador | Correcto en Render por HTTPS, HTTP 200; logout correcto y acceso sin sesión rechazado con 401 |
 | Acceso y restricciones de los tres roles | Pendiente |
 | Frontend y dirección de API en la compilación | Correcto: raíz y JavaScript HTTP 200, URL de API de Render presente |
-| CORS desde el frontend publicado | Pendiente: preflight 204 permite localhost; origen público preparado en archivos locales |
-| Recarga directa de rutas internas del frontend | Pendiente: /login, /clientes, /ordenes y /ordenes/1 devuelven 404; aplicar Rewrite |
+| CORS desde el frontend publicado | Correcto: preflights 204 con origen público, Content-Type y Authorization permitidos; respuesta real y login con Origin correctos |
+| Entrega de la SPA al acceder directamente a rutas internas | Correcto: /login, /clientes, /ordenes y /ordenes/1 devuelven 200 y el documento Vue; interacción de las vistas pendiente de prueba en navegador |
 | Creación y consulta de una orden de trabajo | Pendiente |
 | Carga y visualización de imágenes | Pendiente |
 | Subida, consulta HTTPS y eliminación directa en Cloudinary | Correcto mediante `npm run test:storage`; prueba desde la aplicación pendiente |
