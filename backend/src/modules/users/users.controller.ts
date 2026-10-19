@@ -19,12 +19,12 @@ export async function create(req: Request, res: Response): Promise<void> {
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
-  const user = await usersService.update(Number(req.params.id), req.body as UpdateUserInput);
+  const user = await usersService.update(Number(req.params.id), req.body as UpdateUserInput, req.user!.id);
   sendSuccess(res, user, 'User updated successfully');
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
-  await usersService.remove(Number(req.params.id));
+  await usersService.remove(Number(req.params.id), req.user!.id);
   sendSuccess(res, null, 'User deactivated successfully');
 }
 

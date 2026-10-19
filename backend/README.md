@@ -12,9 +12,12 @@ REST API para el sistema de gestion de talleres de mecanica automotriz.
 - **Auth:** JWT (access + refresh token con rotacion)
 - **Docs:** Swagger UI (OpenAPI 3.0)
 
+La instalación completa y las evidencias del proyecto están en
+[el README principal](../README.md) y la [evaluación final](../EVALUACION-FINAL.md).
+
 ## Requisitos
 
-- Node.js >= 20
+- Node.js 24.13.1, versión fijada para el despliegue del proyecto
 - MySQL 8
 - npm
 
@@ -31,7 +34,7 @@ cp .env.example .env
 # Ejecutar migraciones
 npm run db:migrate
 
-# Poblar datos de prueba
+# Crear el administrador inicial
 npm run db:seed
 
 # Iniciar en desarrollo
@@ -57,6 +60,8 @@ El servidor inicia en `http://localhost:3000`.
 | `npm run db:verify:aiven` | Verificar tablas, contraseña y login por HTTP sobre Aiven |
 | `npm run db:studio` | Abrir Prisma Studio (GUI de BD) |
 | `npm run db:generate` | Regenerar Prisma Client |
+| `npm test` | Ejecutar pruebas unitarias con repositorios simulados |
+| `npm run test:admin-guard` | Comprobar por HTTP la protección de la cuenta propia con datos simulados; ejecutar después de compilar |
 
 ## Variables de entorno
 
@@ -72,6 +77,8 @@ El servidor inicia en `http://localhost:3000`.
 | `UPLOAD_DIR` | Directorio de uploads | `./uploads` |
 | `MAX_FILE_SIZE` | Tamano maximo de archivo (bytes) | `5242880` (5MB) |
 | `CORS_ORIGIN` | Origen permitido para CORS | `http://localhost:5173` |
+| `STORAGE_PROVIDER` | Proveedor `local` o `cloudinary` | `local` |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | Credenciales obligatorias si el proveedor es Cloudinary | — |
 
 ## Documentacion API
 
@@ -98,6 +105,12 @@ El servidor inicia en `http://localhost:3000`.
 | PATCH | `/api/users/:id` | Actualizar usuario |
 | DELETE | `/api/users/:id` | Desactivar usuario (soft delete) |
 | PATCH | `/api/users/:id/restore` | Restaurar usuario |
+
+El administrador no puede cambiar su propio rol ni desactivar su propia cuenta:
+`PATCH /api/users/:id` y `DELETE /api/users/:id` devuelven 403 en esos casos.
+La identidad se toma del JWT autenticado; un identificador enviado en el cuerpo
+no sustituye al usuario autenticado. Puede editar el resto de sus datos y
+administrar otras cuentas.
 
 ### Clients
 | Metodo | Ruta | Descripcion |

@@ -63,7 +63,7 @@ describe('update', () => {
     mockRepo.findById.mockResolvedValue(usuarioExistente as never);
     mockRepo.update.mockResolvedValue(usuarioExistente as never);
 
-    await usersService.update(1, { fullName: 'Nombre Nuevo' });
+    await usersService.update(1, { fullName: 'Nombre Nuevo' }, 1);
 
     expect(mockRepo.update).toHaveBeenCalledWith(1, { fullName: 'Nombre Nuevo' });
     expect(mockRepo.update.mock.calls[0][1]).not.toHaveProperty('password');
@@ -73,7 +73,7 @@ describe('update', () => {
     mockRepo.findById.mockResolvedValue(usuarioExistente as never);
     mockRepo.update.mockResolvedValue(usuarioExistente as never);
 
-    await usersService.update(1, { password: 'OtraClave123!' });
+    await usersService.update(1, { password: 'OtraClave123!' }, 1);
 
     const cambios = mockRepo.update.mock.calls[0][1] as { password: string };
     await expect(bcrypt.compare('OtraClave123!', cambios.password)).resolves.toBe(true);
@@ -84,7 +84,7 @@ describe('update', () => {
     mockRepo.findByEmail.mockResolvedValue(null as never);
     mockRepo.update.mockResolvedValue(usuarioExistente as never);
 
-    await usersService.update(1, { email: 'otro@workshop.com' });
+    await usersService.update(1, { email: 'otro@workshop.com' }, 1);
 
     expect(mockRepo.update).toHaveBeenCalledWith(1, { email: 'otro@workshop.com' });
   });
@@ -93,7 +93,7 @@ describe('update', () => {
     mockRepo.findById.mockResolvedValue(usuarioExistente as never);
     mockRepo.update.mockResolvedValue(usuarioExistente as never);
 
-    await usersService.update(1, { email: 'admin@workshop.com' });
+    await usersService.update(1, { email: 'admin@workshop.com' }, 1);
 
     expect(mockRepo.findByEmail).not.toHaveBeenCalled();
   });
@@ -102,7 +102,7 @@ describe('update', () => {
     mockRepo.findById.mockResolvedValue(usuarioExistente as never);
     mockRepo.findByEmail.mockResolvedValue({ ...usuarioExistente, id: 2 } as never);
 
-    await expect(usersService.update(1, { email: 'ocupado@workshop.com' })).rejects.toThrowError(
+    await expect(usersService.update(1, { email: 'ocupado@workshop.com' }, 1)).rejects.toThrowError(
       expect.objectContaining({ statusCode: 409 }),
     );
     expect(mockRepo.update).not.toHaveBeenCalled();
@@ -111,9 +111,37 @@ describe('update', () => {
   it('rechaza con 404 si el usuario no existe', async () => {
     mockRepo.findById.mockResolvedValue(null as never);
 
-    await expect(usersService.update(99, { fullName: 'X' })).rejects.toThrowError(
+    await expect(usersService.update(99, { fullName: 'X' }, 1)).rejects.toThrowError(
       expect.objectContaining({ statusCode: 404 }),
     );
+  });
+
+  it.each(['RECEPTIONIST', 'MECHANIC'] as const)('impide que el administrador cambie su propio rol a %s', async (role) => {
+    mockRepo.findById.mockResolvedValue(usuarioExistente as never);
+
+    await expect(usersService.update(1, { role }, 1)).rejects.toThrowError(
+      expect.objectContaining({ statusCode: 403, code: 'FORBIDDEN' }),
+    );
+
+    expect(mockRepo.update).not.toHaveBeenCalled();
+  });
+
+  it('permite conservar ADMIN al editar el propio perfil', async () => {
+    mockRepo.findById.mockResolvedValue(usuarioExistente as never);
+    mockRepo.update.mockResolvedValue(usuarioExistente as never);
+
+    await usersService.update(1, { role: 'ADMIN', fullName: 'Administrador' }, 1);
+
+    expect(mockRepo.update).toHaveBeenCalledWith(1, { role: 'ADMIN', fullName: 'Administrador' });
+  });
+
+  it('permite al administrador cambiar el rol de otra cuenta', async () => {
+    mockRepo.findById.mockResolvedValue(usuarioExistente as never);
+    mockRepo.update.mockResolvedValue({ ...usuarioExistente, role: 'MECHANIC' } as never);
+
+    await usersService.update(1, { role: 'MECHANIC' }, 2);
+
+    expect(mockRepo.update).toHaveBeenCalledWith(1, { role: 'MECHANIC' });
   });
 });
 
@@ -122,16 +150,26 @@ describe('remove', () => {
     mockRepo.findById.mockResolvedValue(usuarioExistente as never);
     mockRepo.softDelete.mockResolvedValue(usuarioExistente as never);
 
-    await usersService.remove(1);
+    await usersService.remove(1, 2);
 
     expect(mockRepo.softDelete).toHaveBeenCalledWith(1);
   });
 
   it('rechaza con 404 si el usuario no existe', async () => {
     mockRepo.findById.mockResolvedValue(null as never);
-    await expect(usersService.remove(99)).rejects.toThrowError(
+    await expect(usersService.remove(99, 1)).rejects.toThrowError(
       expect.objectContaining({ statusCode: 404 }),
     );
+  });
+
+  it('impide que el administrador desactive su propia cuenta', async () => {
+    mockRepo.findById.mockResolvedValue(usuarioExistente as never);
+
+    await expect(usersService.remove(1, 1)).rejects.toThrowError(
+      expect.objectContaining({ statusCode: 403, code: 'FORBIDDEN' }),
+    );
+
+    expect(mockRepo.softDelete).not.toHaveBeenCalled();
   });
 });
 

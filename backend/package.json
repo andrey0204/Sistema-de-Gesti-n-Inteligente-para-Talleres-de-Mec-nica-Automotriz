@@ -19,7 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:storage": "tsx scripts/check-cloudinary.ts"
+    "test:storage": "tsx scripts/check-cloudinary.ts",
+    "test:admin-guard": "node scripts/check-admin-self-protection.cjs"
   },
   "keywords": [
     "mechanic",

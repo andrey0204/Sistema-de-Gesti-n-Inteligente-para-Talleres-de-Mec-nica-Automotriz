@@ -416,6 +416,7 @@ export const swaggerDocument = {
       patch: {
         tags: ['Users'],
         summary: 'Update user',
+        description: 'An administrator may edit their own profile but cannot change their own role.',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
         requestBody: {
           required: true,
@@ -428,6 +429,7 @@ export const swaggerDocument = {
         },
         responses: {
           '200': { description: 'User updated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { $ref: '#/components/schemas/User' }, message: { type: 'string' } } } } } },
+          '403': { description: 'Forbidden — admin only; changing your own role is not allowed', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
           '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
           '409': { description: 'Email already exists', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
         },
@@ -435,9 +437,11 @@ export const swaggerDocument = {
       delete: {
         tags: ['Users'],
         summary: 'Deactivate user (soft delete)',
+        description: 'An administrator cannot deactivate their own account.',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
         responses: {
           '200': { description: 'User deactivated', content: { 'application/json': { schema: { type: 'object', properties: { success: { type: 'boolean' }, data: { type: 'object', nullable: true }, message: { type: 'string' } } } } } },
+          '403': { description: 'Forbidden — admin only; deactivating your own account is not allowed', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
           '404': { description: 'User not found', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
         },
       },

@@ -38,9 +38,13 @@ export async function create(data: CreateUserInput) {
   });
 }
 
-export async function update(id: number, data: UpdateUserInput) {
+export async function update(id: number, data: UpdateUserInput, actorId: number) {
   const user = await usersRepository.findById(id);
   if (!user) throw AppError.notFound('User not found');
+
+  if (id === actorId && data.role !== undefined && data.role !== user.role) {
+    throw AppError.forbidden('You cannot change your own role');
+  }
 
   if (data.email && data.email !== user.email) {
     const existing = await usersRepository.findByEmail(data.email);
@@ -56,9 +60,10 @@ export async function update(id: number, data: UpdateUserInput) {
   return usersRepository.update(id, updateData);
 }
 
-export async function remove(id: number) {
+export async function remove(id: number, actorId: number) {
   const user = await usersRepository.findById(id);
   if (!user) throw AppError.notFound('User not found');
+  if (id === actorId) throw AppError.forbidden('You cannot deactivate your own account');
   return usersRepository.softDelete(id);
 }
 

@@ -1,9 +1,9 @@
 # Estado de Sesión — Sistema de Gestión para Talleres
 
-**Última actualización:** 2026-10-10
+**Última actualización:** 2026-10-19
 
 **Branch:** main  
-**Estado actual:** 2026-10-10 — Iniciada la Bitácora 11: diagnóstico de operación y borrador de cinco actividades en `backend/Bitacoras.md`. El usuario requiere alojamiento gratuito con enlace público para los evaluadores. Propuesta investigada en `DESPLIEGUE.md`: frontend y API en Render, MySQL gratuito en Aiven y fotografías en Cloudinary. Cuenta de Render creada; servicio Aiven `taller-mecanico-db` del proyecto `taller-mecanico-am` aparece `Running`, MySQL 8.4.11, plan `Free-1-1gb`, base `defaultdb`. Certificado guardado en `backend/prisma/aiven-ca.pem` y verificado con OpenSSL (`CA:TRUE`, firma `OK`, vigente hasta octubre de 2036). Contraseña Aiven configurada localmente; conexión Prisma, consulta y cifrado TLS verificados mediante `npm run db:check:prod`, que guardó `DATABASE_URL` en `backend/.env.production`. Migración `20260413200324_init` aplicada en Aiven y administrador `admin@workshop.com` creado con contraseña aleatoria en `ADMIN_PASSWORD` de `.env.production`. Verificados tablas, bcrypt, salud, login ADMIN y ruta protegida mediante API temporal local sobre Aiven; seed repetido sin duplicar la cuenta. Backend publicado en https://taller-mecanico-api-9w77.onrender.com: salud, Swagger UI, login ADMIN, consulta autenticada de usuarios y logout devuelven HTTP 200; sin sesión, usuarios devuelve 401. Frontend publicado en https://taller-mecanico-web.onrender.com: raíz y JavaScript HTTP 200, URL de API correcta en la compilación. Rewrite y CORS aplicados en Render: /login, /clientes, /ordenes y /ordenes/1 devuelven 200 con documento Vue; preflights del login y de /api/users devuelven 204, con el origen público y Authorization permitido. Verificados salud, login ADMIN, consulta protegida y logout con Origin del frontend; sin token devuelve 401. Pendientes flujos completos en navegador, imágenes y roles. Se corrigió el orden de rutas de descargas OpenAPI tras detectar HTML en lugar de JSON; build y comprobación HTTP local correctos; corrección publicada en `a87ff21` y descargas JSON/YAML verificadas por HTTPS. Cloudinary integrado, credenciales locales completas y `STORAGE_PROVIDER=cloudinary` activado. Prueba real de subida, consulta HTTPS y eliminación correcta. Verificados los builds y 398 pruebas (261 backend y 137 frontend); también pasa `frontend` → `npm run test:types`.
+**Estado actual:** 2026-10-19 — Bitácora 12 evaluada y documentada con cierre académico y observaciones. Matriz en EVALUACION-FINAL.md: 13 criterios implementados, 1 adaptado y 3 parciales; pendientes asignación por rol, conciliación de permisos e historial dedicado, entre otros hallazgos de continuidad. Implementada protección del administrador en la API: no puede desactivar ni cambiar el rol de su propia cuenta. Pasaron 403 pruebas (266 backend, 137 frontend), ambos builds, tipos de pruebas y ocho peticiones HTTP locales con datos simulados. README y guías actualizados; doce bitácoras y sus sustentaciones locales preparadas. Flujo público e imágenes confirmados por el usuario el 17/10 y persistencia el 19/10. El estado de publicación de la nueva mejora se registra en EVALUACION-FINAL.md; la prueba local no acredita un despliegue. Respaldo documentado; exportación, ensayo de restauración, integración con MySQL y carga pendientes como continuidad.
 
 ---
 
@@ -69,7 +69,7 @@
 - **CSV con `;` y BOM UTF-8** (`lib/csv.ts`): en es-CO la coma es el separador decimal, y sin BOM Excel rompe las tildes. Los importes se exportan con coma decimal para que la hoja los sume
 - **`PATCH /users/:id/restore` es inalcanzable desde la interfaz**: `findMany` y `findById` filtran `deletedAt: null`, así que un usuario desactivado desaparece y no hay forma de descubrir su id. Se decidió no implementar «restaurar» en el frontend; para habilitarlo habría que añadir antes un `includeDeleted` al listado del backend
 - **La contraseña de un usuario solo se envía cuando cambia**: obligatoria al crear (mínimo 8), opcional al editar. El campo vacío se omite del payload y el backend conserva la actual (`if (data.password)` en `users.service.ts`). Verificado: tras editar el nombre sin tocarla, el login sigue funcionando con la contraseña vieja
-- **La cuenta propia se protege solo en el frontend**: el backend deja que un ADMIN se desactive o se cambie el rol a sí mismo, y `authenticate` no consulta la BD (solo verifica el JWT), así que seguiría operando hasta que caducara el access token y luego quedaría fuera. `UsersView` deshabilita «Desactivar» y `UserFormModal` bloquea el selector de rol sobre la propia cuenta
+- **La cuenta propia se protege en frontend y backend** (Bitácora 12): la API toma el id del JWT autenticado y rechaza con 403 la baja o el cambio del rol propio antes de escribir. Se mantiene la edición de otros datos y la administración de otras cuentas. Cinco casos nuevos y comprobación HTTP local con datos simulados. La revocación de permisos de tokens emitidos antes de un cambio por otro administrador queda como observación H-08 de EVALUACION-FINAL.md.
 - **`/usuarios` es solo de ADMIN** aunque `GET /users` esté abierto a RECEPTIONIST: esa apertura es para asignar mecánicos a las órdenes, no para administrar cuentas
 
 ## Pruebas Automatizadas
@@ -80,10 +80,17 @@ Los tests viven en `tests/`, fuera de `rootDir`/`include`, así que no entran en
 el build. Correr en menos de 2 segundos era el requisito: una suite que exige
 levantar MySQL es una suite que se deja de ejecutar.
 
+Medición histórica de la Bitácora 10:
+
 | Proyecto | Pruebas | Cobertura de sentencias |
 |----------|---------|-------------------------|
 | Backend | 235 | 84% |
 | Frontend | 134 | 94% |
+
+Regresión del 19/10/2026 (Bitácora 12): **403 pruebas**, 266 backend y 137
+frontend; ambos builds y los tipos de pruebas del frontend correctos. No se
+recalculó cobertura. `npm run test:admin-guard` añade una comprobación HTTP local
+con ocho peticiones y repositorios simulados, fuera del cómputo Vitest.
 
 **Alcance elegido: unitarias con mocks, sin base de datos.** Queda fuera —y se
 sigue verificando a mano y con Postman— la capa de rutas, la cadena completa de
@@ -157,6 +164,9 @@ test falló, y se restauró.
 - `backend/src/config/swagger.ts` — Documentación OpenAPI completa
 - `backend/README.md` — Documentación del proyecto
 - `backend/postman/` — Colección Postman con auto-token
+- `EVALUACION-FINAL.md` — Matriz de requisitos, hallazgos, mejora, regresión y continuidad.
+- `backend/Bitacora-12-Sustentacion.md` — Sustentación de evaluación y cierre con observaciones. **Local, ignorado por git**
+- `backend/Bitacora-11-Sustentacion.md` — Sustentación del despliegue y alcance de las evidencias. **Local, ignorado por git**
 - `DEMO-PRESENTACION.md` — Guion de la demostración en vivo del frontend (3 roles, 11 vistas). **Local, ignorado por git**
 - `frontend/README.md` — Stack, puesta en marcha, rutas y permisos
 - `frontend/src/lib/http.ts` — Cliente Axios con refresh automático del access token
@@ -180,8 +190,8 @@ El proyecto se documenta en **12 bitácoras** (5 actividades c/u, salvo la 3 que
 | 8 | Frontend base | Documentada + sustentación |
 | 9 | Integración frontend-backend | Documentada + sustentación |
 | 10 | Pruebas y validaciones | Documentada + sustentación |
-| 11 | Despliegue e implementación | En ejecución: API, frontend, Rewrite y CORS verificados; flujos completos pendientes |
-| 12 | Evaluación, mejoras y cierre | Pendiente |
+| 11 | Despliegue e implementación | Documentada + sustentación; cerrada el 19/10/2026 |
+| 12 | Evaluación, mejoras y cierre | Documentada + sustentación; cierre académico con observaciones el 19/10/2026 |
 
 - Formato adoptado: **bloques por actividad** (Descripción / Competencia / Fecha inicio / Fecha fin / Evidencia / Observaciones).
 - Cada bitácora (1-7) incluye al final una sección **"Evidencias recomendadas para adjuntar"** (Archivos + Capturas sugeridas, con rutas reales del repo).
@@ -233,6 +243,16 @@ como se limpian. Verificado contra la API real.
 
 ## Próximo Paso
 
+**Continuidad del proyecto:** las doce bitácoras están documentadas. Revisar
+EVALUACION-FINAL.md para atender primero la asignación exclusiva a mecánicos
+y la conciliación de permisos; después el historial dedicado, la restauración
+de usuarios y el ensayo de recuperación. La nueva protección del administrador
+se verificó localmente; su publicación se registra por separado en el informe.
+La 11 conserva sus evidencias de despliegue y procedimiento de respaldo, sin
+ensayo de restauración ejecutado.
+
+### Configuración de operación conservada
+
 Cambios publicados en GitHub/main (`b40b6b4`, `93cf66a`, `a87ff21`). Configuración del backend Render
 preparada en `DESPLIEGUE.md`: Node, raíz `backend`, Free; build
 `npm ci --include=dev && npm run db:generate && npm run build`; start
@@ -254,8 +274,15 @@ correcta de API. Rewrite `/*` → `/index.html` guardado: /login, /clientes,
 login y ruta con token correctos (204, origen público y Authorization).
 Salud, login ADMIN, consulta protegida y logout por HTTPS con Origin del frontend
 correctos; sin sesión, 401. Archivos privados del backend sincronizados.
-Próximo paso: probar desde el navegador una orden, sus imágenes, permisos por
-rol, recordatorios y reportes; completar persistencia y respaldo para cerrar la 11.
+El 17/10/2026 el usuario completó el flujo de DEMO-PRESENTACION.md y comunicó
+resultado correcto, incluida expresamente la subida de imágenes. El guion
+recorre los tres roles y los módulos de la aplicación; queda registrado como
+prueba manual del usuario, sin resultados individuales de variantes opcionales.
+El 19/10/2026 el usuario confirmó la conservación de los datos y las imágenes
+tras reiniciar. Resultado registrado como comprobación manual del usuario.
+El procedimiento de respaldo y recuperación quedó documentado en DESPLIEGUE.md,
+y la sustentación se preparó en backend/Bitacora-11-Sustentacion.md. La exportación
+y el ensayo de restauración no se ejecutaron durante este cierre.
 
 Preparación local de Aiven: `backend/.env.production` creado e ignorado por Git,
 con datos del servicio, credenciales de Cloudinary y nuevos secretos JWT.
@@ -270,37 +297,40 @@ Migraciones aplicadas con `db:migrate:aiven`, administrador creado con
 Correo: `admin@workshop.com`; contraseña en `ADMIN_PASSWORD` del archivo privado.
 `CORS_ORIGIN` público está aplicado y verificado en Render, y sincronizado en los archivos privados.
 
-El MVP funcional está completo, las Bitácoras 1-10 están documentadas y el proyecto
-tiene 398 pruebas automatizadas. Queda:
+El flujo principal del MVP fue confirmado por el usuario y las doce bitácoras
+están documentadas con sus sustentaciones. La evaluación final conserva tres
+criterios parcialmente cubiertos; no se declara cumplimiento completo de la
+especificación inicial. La 11 se cerró el 19/10/2026: servicios publicados, CORS y Rewrite
+verificados, flujo e imágenes confirmados por el usuario, persistencia tras
+reiniciar confirmada por el usuario y procedimiento de respaldo y recuperación
+preparado. Las copias y el ensayo de restauración descritos no se ejecutaron en
+este cierre y no se presentan como evidencia de recuperación realizada.
 
-1. **Despliegue** (Bitácora 11) — iniciado el diagnóstico y el borrador académico
-   de cinco actividades. Ver `DESPLIEGUE.md` y la sección nueva de
-   `backend/Bitacoras.md`. Destino acordado: Render gratuito para frontend y API,
-   Aiven gratuito para MySQL y Cloudinary gratuito para las imágenes. Cloudinary
-   ya está integrado y comprobado mediante subida, consulta HTTPS y eliminación
-   reales. Conexión TLS, migraciones y administrador de Aiven comprobados.
-   API, frontend, Rewrite y CORS comprobados por HTTPS. Pendientes los flujos
-   públicos completos desde el navegador y las pruebas de roles y persistencia.
-   Las actividades pendientes no se han registrado como
-   realizadas; la sustentación se elaborará con los resultados del despliegue.
-   Nota: `NODE_ENV=production` cambia el comportamiento del error-handler (esconde el
-   mensaje interno), y eso ya está cubierto por un test.
-2. **Evaluación, mejoras y cierre** (Bitácora 12).
+La **Bitácora 12 — Evaluación, mejoras y cierre** quedó documentada el
+19/10/2026 con la protección de la cuenta propia, la matriz de requisitos,
+403 pruebas correctas y ocho peticiones HTTP locales con datos simulados.
+El estado de publicación de esa mejora y las observaciones abiertas figuran
+en EVALUACION-FINAL.md.
 
-Las fechas de las bitácoras siguen el cronograma académico, no el calendario real: la
-Bitácora 9 fue del 06/09 al 15/09/2026 y la 10 del 16/09 al 25/09/2026. La Bitácora 11
-arrancaría el 26/09.
+Las fechas académicas continúan el cronograma: Bitácora 9 del 06/09 al 15/09/2026,
+10 del 16/09 al 25/09/2026, 11 del 26/09 al 05/10/2026 y 12 propuesta del
+06/10 al 15/10/2026. Las confirmaciones reales
+se registraron el 17 y el 19 de octubre; el cierre documental es del 19/10/2026.
 
-Mejoras opcionales detectadas por el camino, ninguna bloqueante:
+Trabajo de continuidad (prioridades y alcance en EVALUACION-FINAL.md):
 
 - **Pruebas de integración** con una BD de pruebas (`mechanic_workshop_test`) y
   Supertest, para cubrir rutas, cadena de middlewares y los 403 por rol, que hoy se
   verifican a mano. `app.ts` ya está separado de `server.ts`, así que Supertest puede
-  montar la app sin levantar el servidor. MySQL local está activo
+  montar la app sin iniciar un servidor externo. La comprobación HTTP de la
+  cuenta propia usa repositorios simulados y no sustituye una suite con MySQL.
 - Permitir restaurar usuarios desactivados (requiere un `includeDeleted` en el listado
   del backend)
 - Que el backend marque solo los recordatorios vencidos
 - Los servicios de imágenes y almacenamiento local/Cloudinary cuentan ahora con
   pruebas de permisos, compensación de subidas, guardado, borrado y elección del
-  proveedor. La prueba real directa en Cloudinary pasa; falta el flujo completo
-  de imágenes en una orden de trabajo desplegada.
+  proveedor. La prueba real directa en Cloudinary pasa. El usuario confirmó el flujo
+  manual del guion y la subida de imágenes en la aplicación desplegada el
+  17/10/2026. El 19/10/2026 confirmó que los datos y las imágenes se conservan
+  tras reiniciar. El respaldo y la recuperación están documentados; el ensayo de
+  restauración queda como verificación operativa de continuidad.

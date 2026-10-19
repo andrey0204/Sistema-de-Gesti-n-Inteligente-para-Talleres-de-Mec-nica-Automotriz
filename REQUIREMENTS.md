@@ -1,4 +1,8 @@
 # Especificación de Requisitos — MVP
+
+> Documento de referencia inicial. La comparación con la implementación y las
+> diferencias pendientes se registran en [EVALUACION-FINAL.md](EVALUACION-FINAL.md).
+
 ## Sistema de Gestión Inteligente para Talleres de Mecánica Automotriz
 
 **Versión:** 1.0  

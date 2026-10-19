@@ -17,7 +17,7 @@ Consume la API REST documentada en [`../backend`](../backend).
 
 ## Requisitos
 
-- Node.js 20+ (el proyecto se desarrolla con **24.13.1**, ver `.nvmrc`)
+- Node.js **24.13.1**, versión declarada en `.nvmrc`
 - El backend corriendo en `http://localhost:3000`
 
 > El `default` de nvm en el equipo apunta a Node 10, que no sirve para Vite.
@@ -42,13 +42,15 @@ El backend ya permite el origen `http://localhost:5173` mediante la variable
 | `npm run dev` | Servidor de desarrollo con HMR |
 | `npm run build` | Chequeo de tipos (`vue-tsc`) + build de producción |
 | `npm run preview` | Sirve el build de producción |
+| `npm test` | Ejecuta las pruebas unitarias |
+| `npm run test:types` | Revisa los tipos de las pruebas |
 
 ## Variables de entorno
 
 | Variable | Descripción |
 |----------|-------------|
 | `VITE_API_URL` | URL base de la API (por defecto `http://localhost:3000/api`) |
-| `VITE_UPLOADS_URL` | URL base de las imágenes servidas por el backend |
+| `VITE_UPLOADS_URL` | URL base para imágenes locales servidas por el backend; Cloudinary utiliza la URL HTTPS guardada |
 
 ## Estructura
 
@@ -186,9 +188,11 @@ no para administrar cuentas.
 - **La contraseña solo se envía cuando cambia.** Es obligatoria al crear (mínimo 8
   caracteres) y opcional al editar: el campo vacío se omite del payload y el backend
   conserva la que había. Nunca se precarga, porque la API no la devuelve.
-- **La cuenta propia está protegida en la interfaz.** No se puede desactivar ni cambiar
-  su propio rol; el backend no lo valida y el administrador quedaría fuera de la
-  sección. El resto de sus datos sí se puede editar.
+- **La cuenta propia está protegida en la interfaz y en la API.** La interfaz
+  bloquea la baja y el cambio del rol propio. El backend comprueba la identidad
+  del JWT y devuelve 403 al intentar esas operaciones, incluso mediante una
+  llamada directa. Conserva la edición de otros datos y la administración de
+  cuentas ajenas. Ver [evaluación y verificaciones](../EVALUACION-FINAL.md).
 - **No hay opción de restaurar.** El backend expone `PATCH /users/:id/restore`, pero es
   inalcanzable: ni el listado ni `GET /users/:id` devuelven los usuarios desactivados,
   así que no hay forma de descubrir su id. Para volver a habilitar a alguien hay que
@@ -205,6 +209,11 @@ el backend (v4), el adaptador `toTypedSchema` está implementado en
 `src/lib/zod-form.ts`.
 
 ## Usuarios de prueba
+
+El seed crea únicamente el administrador. Los valores de la tabla son ejemplos
+para desarrollo: recepción y mecánico deben crearse desde administración. En
+Render se utilizan las contraseñas configuradas para ese entorno, incluida
+`ADMIN_PASSWORD` del archivo privado de producción para el administrador inicial.
 
 | Rol | Correo | Contraseña |
 |-----|--------|------------|
