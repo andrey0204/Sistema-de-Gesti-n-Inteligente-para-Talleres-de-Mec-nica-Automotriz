@@ -3,7 +3,7 @@
 **Última actualización:** 2026-10-19
 
 **Branch:** main  
-**Estado actual:** 2026-10-19 — Bitácora 12 evaluada y documentada con cierre académico y observaciones. Matriz en EVALUACION-FINAL.md: 13 criterios implementados, 1 adaptado y 3 parciales; pendientes asignación por rol, conciliación de permisos e historial dedicado, entre otros hallazgos de continuidad. Implementada protección del administrador en la API: no puede desactivar ni cambiar el rol de su propia cuenta. Pasaron 403 pruebas (266 backend, 137 frontend), ambos builds, tipos de pruebas y ocho peticiones HTTP locales con datos simulados. README y guías actualizados; doce bitácoras y sus sustentaciones locales preparadas. Flujo público e imágenes confirmados por el usuario el 17/10 y persistencia el 19/10. El estado de publicación de la nueva mejora se registra en EVALUACION-FINAL.md; la prueba local no acredita un despliegue. Respaldo documentado; exportación, ensayo de restauración, integración con MySQL y carga pendientes como continuidad.
+**Estado actual:** 2026-10-19 — Bitácora 12 evaluada y documentada con cierre académico y observaciones. Matriz en EVALUACION-FINAL.md: 13 criterios implementados, 1 adaptado y 3 parciales; pendientes asignación por rol, conciliación de permisos e historial dedicado, entre otros hallazgos de continuidad. Implementada protección del administrador en la API: no puede desactivar ni cambiar el rol de su propia cuenta. Pasaron 403 pruebas (266 backend, 137 frontend), ambos builds, tipos de pruebas y ocho peticiones HTTP locales con datos simulados. README y guías actualizados; doce bitácoras y sus sustentaciones locales preparadas. Flujo público e imágenes confirmados por el usuario el 17/10 y persistencia el 19/10. Mejora subida en aaca42f y nueva especificación verificada en Render, junto con salud, CORS y rutas mediante peticiones de lectura. Los rechazos de operaciones propias se comprobaron localmente con datos simulados, sin alterar cuentas reales. Respaldo documentado; exportación, ensayo de restauración, integración con MySQL y carga pendientes como continuidad.
 
 ---
 
@@ -246,8 +246,8 @@ como se limpian. Verificado contra la API real.
 **Continuidad del proyecto:** las doce bitácoras están documentadas. Revisar
 EVALUACION-FINAL.md para atender primero la asignación exclusiva a mecánicos
 y la conciliación de permisos; después el historial dedicado, la restauración
-de usuarios y el ensayo de recuperación. La nueva protección del administrador
-se verificó localmente; su publicación se registra por separado en el informe.
+de usuarios y el ensayo de recuperación. La protección del administrador se verificó localmente. Tras publicar aaca42f,
+se comprobaron por lectura su nueva especificación en Render, salud, CORS y rutas.
 La 11 conserva sus evidencias de despliegue y procedimiento de respaldo, sin
 ensayo de restauración ejecutado.
 
@@ -309,8 +309,8 @@ este cierre y no se presentan como evidencia de recuperación realizada.
 La **Bitácora 12 — Evaluación, mejoras y cierre** quedó documentada el
 19/10/2026 con la protección de la cuenta propia, la matriz de requisitos,
 403 pruebas correctas y ocho peticiones HTTP locales con datos simulados.
-El estado de publicación de esa mejora y las observaciones abiertas figuran
-en EVALUACION-FINAL.md.
+La mejora se subió en aaca42f; se comprobaron OpenAPI, salud, CORS y rutas en
+Render por lectura. Las observaciones abiertas figuran en EVALUACION-FINAL.md.
 
 Las fechas académicas continúan el cronograma: Bitácora 9 del 06/09 al 15/09/2026,
 10 del 16/09 al 25/09/2026, 11 del 26/09 al 05/10/2026 y 12 propuesta del

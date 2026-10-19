@@ -130,10 +130,12 @@ No se recalculó cobertura: los porcentajes de la Bitácora 10 corresponden a su
 medición histórica. Los tiempos de una ejecución local no se usan como prueba
 de rendimiento del servicio publicado.
 
-La verificación HTTP de la mejora corresponde al código compilado localmente.
-Su publicación en Render se registra por separado, cuando exista evidencia de
-que esa versión está desplegada; no se enviaron peticiones para desactivar o
-degradar la cuenta real del administrador.
+La verificación de los rechazos HTTP corresponde al código compilado localmente
+con datos simulados. Tras subir el commit `aaca42f` a GitHub, se comprobó en
+Render el OpenAPI público con las nuevas descripciones y respuestas 403 de
+usuarios, la salud de la API, CORS y la entrega de las rutas `/login`, `/clientes`
+y `/ordenes` con HTTP 200. Esta comprobación pública fue de lectura; no se
+enviaron peticiones para desactivar ni degradar al administrador real.
 
 ## 6. Entrega y continuidad
 
